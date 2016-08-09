@@ -13,7 +13,7 @@
    height="280.08072"
    id="svg4290"
    version="1.1"
-   inkscape:version="0.48.4 r9939"
+   inkscape:version="0.91 r13725"
    sodipodi:docname="cross_border_request.svg">
   <defs
      id="defs4292">
@@ -49,10 +49,10 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:window-width="1920"
-     inkscape:window-height="1056"
-     inkscape:window-x="0"
-     inkscape:window-y="24"
+     inkscape:window-width="1916"
+     inkscape:window-height="1156"
+     inkscape:window-x="4"
+     inkscape:window-y="0"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata4295">
@@ -105,7 +105,7 @@
        ry="0" />
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:125%;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
        x="402.83386"
        y="579.86163"
        id="text3957"
@@ -113,7 +113,7 @@
          sodipodi:role="line"
          id="tspan3959"
          x="402.83386"
-         y="579.86163">$Q_{P0}$</tspan></text>
+         y="579.86163">Q_P0</tspan></text>
     <path
        style="opacity:0.74545456;fill:#15140f;fill-opacity:1;stroke:none"
        d="m 403.77938,721.24359 c 15.19025,15.77052 -15.08594,33.77768 0,55.66462 l -1.28244,0 c -14.94851,-21.77705 15.18519,-39.825 0,-55.66462 z"
@@ -136,7 +136,7 @@
        transform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,0,0)" />
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:125%;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
        x="403.02316"
        y="691.85083"
        id="text3914-50"
@@ -144,7 +144,7 @@
          sodipodi:role="line"
          id="tspan3916-9"
          x="403.02316"
-         y="691.85083">$R_0$</tspan></text>
+         y="691.85083">r_0</tspan></text>
     <rect
        style="fill:#f87b55;fill-opacity:1;stroke:#f22727;stroke-width:0.98995584;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect5311-1"
@@ -154,7 +154,7 @@
        y="672.46729" />
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:125%;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
        x="464.6731"
        y="692.86096"
        id="text3914-50-6"
@@ -162,7 +162,7 @@
          sodipodi:role="line"
          id="tspan3916-9-7"
          x="464.6731"
-         y="692.86096">$R_0$</tspan></text>
+         y="692.86096">r_0</tspan></text>
     <rect
        style="fill:#6ea2eb;fill-opacity:1;stroke:#6682e5;stroke-width:0.98995584;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect5311-6"
@@ -173,7 +173,7 @@
        transform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,0,0)" />
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:125%;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
        x="525.57812"
        y="691.85083"
        id="text3914-50-7"
@@ -181,7 +181,7 @@
          sodipodi:role="line"
          id="tspan3916-9-71"
          x="525.57812"
-         y="691.85083">$R_0$</tspan></text>
+         y="691.85083">r_0</tspan></text>
     <rect
        style="fill:#6ea2eb;fill-opacity:1;stroke:#6682e5;stroke-width:0.98995584;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect5311-1-5"
@@ -191,7 +191,7 @@
        y="671.96222" />
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:125%;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
        x="585.13379"
        y="692.3559"
        id="text3914-50-6-5"
@@ -199,7 +199,7 @@
          sodipodi:role="line"
          id="tspan3916-9-7-3"
          x="585.13379"
-         y="692.3559">$R_0$</tspan></text>
+         y="692.3559">r_0</tspan></text>
     <rect
        style="fill:none;stroke:#130a0a;stroke-width:0.98995584;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect5311-9"
@@ -247,7 +247,7 @@
          id="tspan6001">Sync</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:125%;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
        x="462.64551"
        y="579.74609"
        id="text3957-6"
@@ -255,10 +255,10 @@
          sodipodi:role="line"
          id="tspan3959-2"
          x="462.64551"
-         y="579.74609">$Q_{P1}$</tspan></text>
+         y="579.74609">Q_P1</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:125%;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
        x="522.46692"
        y="579.92462"
        id="text3957-64"
@@ -266,10 +266,10 @@
          sodipodi:role="line"
          id="tspan3959-8"
          x="522.46692"
-         y="579.92462">$Q_{P2}$</tspan></text>
+         y="579.92462">Q_P2</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:125%;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
        x="586.08673"
        y="579.90295"
        id="text3957-2"
@@ -277,6 +277,6 @@
          sodipodi:role="line"
          id="tspan3959-7"
          x="586.08673"
-         y="579.90295">$Q_{P3}$</tspan></text>
+         y="579.90295">Q_P3</tspan></text>
   </g>
 </svg>
