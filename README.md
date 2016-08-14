@@ -5,7 +5,7 @@ This projects aims to provide scala based implementation of the **B**yzantine **
 
 A short introduction and description of the general idea of how to enable multiple leader is given in the [Wiki](https://github.com/pheymann/scala.bft/wiki).
 
-The current development branch is [impl-consensus-rounds](https://github.com/pheymann/scala.bft/tree/impl-consensus-rounds) which is related to issue #1.
+The current development branch is [feature/impl-consensus-rounds](https://github.com/pheymann/scala.bft/tree/feature/impl-consensus-rounds) which is related to issue #1.
 
 ## Project
  - *bft*: implements the basic **B**yzantine **F**ault **T**olerance protocol
