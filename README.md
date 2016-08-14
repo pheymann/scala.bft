@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/pheymann/scala.bft.svg?branch=develop)](https://travis-ci.org/pheymann/scala.bft)
+
 # Scala.bft
 This projects aims to provide scala based implementation of the **B**yzantine **F**ault **T**olerance protocole and furthermore to introduce a **mutli-leader** approach to obtain parallelism and an improved performance.
 
