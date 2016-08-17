@@ -1,12 +1,13 @@
 package com.github.pheymann.scala.bft.consensus
 
+import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.consensus.ConsensusRound.StartRound
 
 class PrepareRound(implicit val consensusContext: ConsensusContext) extends ConsensusRound {
 
   import PrepareRound._
 
-  protected final val expectedMessages = 10 //TODO use 2f
+  protected final val expectedMessages = 2 * BftReplicaConfig.expectedFaultyReplicas
 
   protected val message = Prepare(
     consensusContext.sequenceNumber,
