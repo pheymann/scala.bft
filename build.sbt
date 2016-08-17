@@ -4,10 +4,10 @@ lazy val commonSettings = Seq(
 )
 
 lazy val `scala-bft` = project.in(file("."))
-  .aggregate(bft)
+  .aggregate(`scala-bft-replica`)
 
 
-lazy val bft = project.in(file("bft"))
+lazy val `scala-bft-replica` = project.in(file("bft-replica"))
   .settings(commonSettings: _*)
   .settings(
    libraryDependencies ++= Dependencies.bft
