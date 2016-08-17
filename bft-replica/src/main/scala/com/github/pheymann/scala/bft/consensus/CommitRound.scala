@@ -2,8 +2,13 @@ package com.github.pheymann.scala.bft.consensus
 
 import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.consensus.ConsensusRound.StartRound
+import com.github.pheymann.scala.bft.replica.ReplicaContext
 
-class CommitRound(implicit val consensusContext: ConsensusContext) extends ConsensusRound {
+class CommitRound(
+                  implicit
+                  val consensusContext: ConsensusContext,
+                  val replicaContext:   ReplicaContext
+                 ) extends ConsensusRound {
 
   import CommitRound._
 
@@ -16,7 +21,7 @@ class CommitRound(implicit val consensusContext: ConsensusContext) extends Conse
   )
   protected def executeMessage(message: ConsensusMessage) {
     storage.addCommit(message)
-    storage.persist(message)
+    storage.finishForRequest(message)
     sender() ! FinishedCommit
   }
 

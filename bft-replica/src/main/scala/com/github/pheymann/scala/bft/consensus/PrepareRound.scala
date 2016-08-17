@@ -2,8 +2,13 @@ package com.github.pheymann.scala.bft.consensus
 
 import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.consensus.ConsensusRound.StartRound
+import com.github.pheymann.scala.bft.replica.ReplicaContext
 
-class PrepareRound(implicit val consensusContext: ConsensusContext) extends ConsensusRound {
+class PrepareRound(
+                    implicit
+                    val consensusContext: ConsensusContext,
+                    val replicaContext:   ReplicaContext
+                  ) extends ConsensusRound {
 
   import PrepareRound._
 

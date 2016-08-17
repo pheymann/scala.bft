@@ -1,9 +1,10 @@
 package com.github.pheymann.scala.bft.consensus
 
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, PrePrepare, RequestDelivery}
+import com.github.pheymann.scala.bft.replica.ReplicaContext
 import com.github.pheymann.scala.bft.util.{ClientRequest, RequestDigitsGenerator}
 
-case class FollowerConsensus() extends ConsensusInstance {
+case class FollowerConsensus(implicit val replicaContext: ReplicaContext) extends ConsensusInstance {
 
   var request: ClientRequest = _
 

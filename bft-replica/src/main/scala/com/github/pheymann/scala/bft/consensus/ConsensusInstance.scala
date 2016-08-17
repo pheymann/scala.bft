@@ -4,6 +4,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import com.github.pheymann.scala.bft.consensus.CommitRound.{Commit, FinishedCommit, StartCommit}
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.FinishedPrePrepare
 import com.github.pheymann.scala.bft.consensus.PrepareRound.{FinishedPrepare, Prepare, StartPrepare}
+import com.github.pheymann.scala.bft.replica.ReplicaContext
 import com.github.pheymann.scala.bft.util.{ActorLoggingUtil, ClientRequest, RequestDigitsGenerator}
 
 trait ConsensusInstance extends Actor
@@ -11,6 +12,8 @@ trait ConsensusInstance extends Actor
                         with    ActorLoggingUtil {
 
   import ConsensusInstance._
+
+  implicit def replicaContext: ReplicaContext
 
   def request: ClientRequest
 

@@ -14,7 +14,7 @@ trait LogStorage extends Extension {
   def addPrePrepare(message: ConsensusMessage): Unit
   def addPrepare(message: ConsensusMessage):    Unit
   def addCommit(message: ConsensusMessage):     Unit
-  def persist(message: ConsensusMessage):       Unit
+  def finishForRequest(message: ConsensusMessage): Unit
 
 }
 
@@ -55,7 +55,7 @@ class LogStorageInterface(implicit system: ActorSystem) extends LogStorage {
 
   }
 
-  override def persist(message: ConsensusMessage) {
+  override def finishForRequest(message: ConsensusMessage) {
 
   }
 

@@ -10,7 +10,8 @@ trait Versions {
 
 trait Libraries extends Versions {
 
-  val akka    = "com.typesafe.akka" %% "akka-actor" % akkaVersion
+  val akka      = "com.typesafe.akka" %% "akka-actor"   % akkaVersion
+  val akkaTest  = "com.typesafe.akka" %% "akka-testkit" % akkaVersion
 
   val specs2  = "org.specs2" %% "specs2-core" % specs2Verison
 
@@ -18,9 +19,11 @@ trait Libraries extends Versions {
 
 object Dependencies extends Libraries {
 
-  val bft = Seq(
-    akka    % Compile,
-    specs2  % Test
+  val bftReplica = Seq(
+    akka % Compile,
+
+    akkaTest  % Test,
+    specs2    % Test
   )
 
 }
