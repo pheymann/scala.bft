@@ -1,37 +1,27 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.consensus.CommitRound.StartCommit
+import com.github.pheymann.scala.bft.consensus.ConsensusRound.StartRound
+import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
 
-trait PrepareRound { this: Consensus with CommitRound =>
+class PrepareRound(implicit val consensusContext: ConsensusContext) extends ConsensusRound {
 
-  import PrepareRound._
+  protected final val expectedMessages = 10 //TODO use 2f
 
-  private var messageCounter = 0
-
-  def prepare: Receive = {
-    case StartPrepare =>
-      replicas.sendMessage(Prepare(sequenceNumber, view, requestDigits))
-
-    case message@Prepare(_sequenceNumber, _view, _requestDigits) =>
-      if (isValidMessage(_sequenceNumber, _view, _requestDigits)) {
-        if (messageCounter == expectedMessages) {
-          storage.store(message)
-          context.become(commit)
-          self ! StartCommit
-        }
-        else
-          messageCounter += 1
-      }
+  protected val message = Prepare(
+    consensusContext.sequenceNumber,
+    consensusContext.view,
+    consensusContext.requestDigits
+  )
+  protected def executeMessage(message: ConsensusMessage): Unit = {
+    storage.addPrepare(message)
   }
 
 }
 
 object PrepareRound {
 
-  case object StartPrepare
+  case object StartPrepare extends StartRound
 
-  case class Prepare(sequenceNumber: Long, view: Long, requestDigits: Array[Byte])
-
-  private final val expectedMessages = 10 //TODO use 2f
+  case class Prepare(sequenceNumber: Long, view: Long, requestDigits: Array[Byte]) extends ConsensusMessage
 
 }

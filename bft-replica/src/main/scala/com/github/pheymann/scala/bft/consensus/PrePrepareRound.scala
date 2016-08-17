@@ -1,21 +1,25 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.consensus.PrepareRound.StartPrepare
-import com.github.pheymann.scala.bft.util.ClientRequest
-
-trait PrePrepareRound { this: Consensus with PrepareRound =>
+class PrePrepareRound(implicit val consensusContext: ConsensusContext) extends ConsensusActor {
 
   import PrePrepareRound._
 
-  def prePrepare: Receive = {
+  private val message = PrePrepare(
+    consensusContext.sequenceNumber,
+    consensusContext.view,
+    consensusContext.requestDigits
+  )
+
+  storage.startForRequest(consensusContext.request)
+  storage.addPrePrepare(message)
+
+  override def receive = {
     case StartConsensus =>
-      replicas.sendMessage(PrePrepare(sequenceNumber, view, requestDigits))
-      replicas.sendRequest(RequestDelivery(sequenceNumber, view, request))
+      replicas.sendMessage(message)
+      replicas.sendRequest(message, consensusContext.request)
 
-      storage.store(PrePrepare(sequenceNumber, view, requestDigits))
+    case JoinConsensus =>
 
-      context.become(prepare)
-      self ! StartPrepare
   }
 
 }
@@ -23,8 +27,8 @@ trait PrePrepareRound { this: Consensus with PrepareRound =>
 object PrePrepareRound {
 
   case object StartConsensus
+  case object JoinConsensus
 
-  case class PrePrepare(sequenceNumber: Long, view: Long, requestDigest: Array[Byte])
-  case class RequestDelivery(sequenceNumber: Long, view: Long, clientRequest: ClientRequest)
+  case class PrePrepare(sequenceNumber: Long, view: Long, requestDigits: Array[Byte]) extends ConsensusMessage
 
 }

@@ -1,34 +1,28 @@
 package com.github.pheymann.scala.bft.consensus
 
-trait CommitRound { this: Consensus =>
+import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
+import com.github.pheymann.scala.bft.consensus.ConsensusRound.StartRound
 
-  import CommitRound._
+class CommitRound(implicit val consensusContext: ConsensusContext) extends ConsensusRound {
 
-  private var messageCounter = 0
+  protected final val expectedMessages = 10 //TODO use 2f + 1
 
-  def commit: Receive = {
-    case StartCommit =>
-      replicas.sendMessage(Commit(sequenceNumber, view, requestDigits))
-
-    case message@Commit(_sequenceNumber, _view, _requestDigits) =>
-      if (isValidMessage(_sequenceNumber, _view, _requestDigits)) {
-        if (messageCounter == expectedMessages) {
-          storage.store(message)
-          //TODO execute request return result
-        }
-        else
-          messageCounter += 1
-      }
+  protected val message = Commit(
+    consensusContext.sequenceNumber,
+    consensusContext.view,
+    consensusContext.requestDigits
+  )
+  protected def executeMessage(message: ConsensusMessage): Unit = {
+    storage.addCommit(message)
+    //TODO execute operations
   }
 
 }
 
 object CommitRound {
 
-  case object StartCommit
+  case object StartCommit extends StartRound
 
-  case class Commit(sequenceNumber: Long, view: Long, requestDigits: Array[Byte])
-
-  private final val expectedMessages = 10 //TODO use 2f + 1
+  case class Commit(sequenceNumber: Long, view: Long, requestDigits: Array[Byte]) extends ConsensusMessage
 
 }

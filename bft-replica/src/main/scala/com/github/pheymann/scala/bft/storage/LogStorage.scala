@@ -1,10 +1,16 @@
 package com.github.pheymann.scala.bft.storage
 
 import akka.actor.{ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider}
+import com.github.pheymann.scala.bft.consensus.ConsensusMessage
+import com.github.pheymann.scala.bft.util.ClientRequest
 
 trait LogStorage extends Extension {
 
-  def store(message: Any): Unit
+  def startForRequest(request: ClientRequest):  Unit
+  def addPrePrepare(message: ConsensusMessage): Unit
+  def addPrepare(message: ConsensusMessage):    Unit
+  def addCommit(message: ConsensusMessage):     Unit
+  def persist(message: ConsensusMessage):       Unit
 
 }
 
@@ -19,8 +25,26 @@ object LogStorage extends ExtensionId[LogStorage]
 
 class LogStorageInterface(implicit system: ActorSystem) extends LogStorage {
 
-  override def store(message: Any): Unit = {
-    //TODO implement store
+  //TODO implement storage procedures
+
+  override def startForRequest(request: ClientRequest): Unit = {
+
+  }
+
+  override def addPrePrepare(message: ConsensusMessage): Unit = {
+
+  }
+
+  override def addPrepare(message: ConsensusMessage): Unit = {
+
+  }
+
+  override def addCommit(message: ConsensusMessage): Unit= {
+
+  }
+
+  override def persist(message: ConsensusMessage): Unit = {
+
   }
 
 }
