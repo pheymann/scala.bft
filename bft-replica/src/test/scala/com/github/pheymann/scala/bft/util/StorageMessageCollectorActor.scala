@@ -1,15 +1,19 @@
 package com.github.pheymann.scala.bft.util
 
-import akka.actor.Actor
+import akka.actor.{Actor, ActorLogging}
 import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.PrePrepare
 import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
 import com.github.pheymann.scala.bft.util.CollectorStateObserver.CheckState
 
 
-class StorageMessageCollectorActor(expectation: StorageMessageExpectation) extends Actor {
+class StorageMessageCollectorActor  extends Actor
+                                    with    ActorLogging
+                                    with    ActorLoggingUtil {
 
   import StorageMessageCollectorActor._
+
+  var expectation: StorageMessageExpectation = _
 
   var startOpt: Option[Start] = None
   var addPrePrepareOpt: Option[AddPrePrepare] = None
@@ -18,6 +22,10 @@ class StorageMessageCollectorActor(expectation: StorageMessageExpectation) exten
   var finishOpt: Option[Finish]       = None
 
   override def receive = {
+    case InitStorageCollector(expect) =>
+      expectation = expect
+      debug(s"expectation: $expect")
+
     case message: Start => startOpt = Some(message)
     case message: AddPrePrepare => addPrePrepareOpt = Some(message)
     case message: AddPrepare    => addPrepareOpt = Some(message)
@@ -25,6 +33,14 @@ class StorageMessageCollectorActor(expectation: StorageMessageExpectation) exten
     case message: Finish    => finishOpt = Some(message)
 
     case CheckState =>
+      debug("start: %s, pre-prepare: %s, prepare: %s, commit: %s, finish: %s".format(
+        startOpt.isDefined,
+        addPrePrepareOpt.isDefined,
+        addPrepareOpt.isDefined,
+        addCommitOpt.isDefined,
+        finishOpt.isDefined
+      ))
+
       sender() ! {
         startOpt.isDefined == expectation.isStart &&
         addPrePrepareOpt.isDefined == expectation.isPrePrepare &&
@@ -37,6 +53,8 @@ class StorageMessageCollectorActor(expectation: StorageMessageExpectation) exten
 }
 
 object StorageMessageCollectorActor {
+
+  case class InitStorageCollector(expectation: StorageMessageExpectation)
 
   case class Start(request: ClientRequest)
   case class AddPrePrepare(message: PrePrepare)

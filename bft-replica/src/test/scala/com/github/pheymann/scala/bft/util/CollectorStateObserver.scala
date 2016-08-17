@@ -13,10 +13,11 @@ class CollectorStateObserver(collectorRef: ActorRef)
   import system.dispatcher
   import CollectorStateObserver._
 
-  def checkCollector: Future[Unit] = Future {
+  def checkCollector: Future[Boolean] = Future {
     while (!Await.result(collectorRef ? CheckState, 1.second).asInstanceOf[Boolean]) {
       Thread.sleep(500)
     }
+    true
   }
 
 }

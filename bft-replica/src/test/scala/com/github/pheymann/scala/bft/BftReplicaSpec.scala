@@ -5,6 +5,8 @@ import akka.util.Timeout
 import com.github.pheymann.scala.bft.consensus.ConsensusContext
 import com.github.pheymann.scala.bft.replica.{Replica, ReplicaContextMock, ReplicasMock}
 import com.github.pheymann.scala.bft.storage.LogStorageMock
+import com.github.pheymann.scala.bft.util.RoundMessageCollectorActor.InitRoundCollector
+import com.github.pheymann.scala.bft.util.StorageMessageCollectorActor.InitStorageCollector
 import com.github.pheymann.scala.bft.util._
 import org.specs2.mutable.{After, Specification}
 
@@ -31,11 +33,8 @@ trait BftReplicaSpec extends Specification {
     implicit val timeout  = Timeout(timeoutDuration)
     implicit val system = ActorSystem("test-system")
 
-    def roundExpectation:   RoundMessageExpectation
-    def storageExpectation: StorageMessageExpectation
-
-    val roundCollectorRef = system.actorOf(Props(new RoundMessageCollectorActor(roundExpectation)))
-    val logCollectorRef   = system.actorOf(Props(new StorageMessageCollectorActor(storageExpectation)))
+    val roundCollectorRef = system.actorOf(Props(new RoundMessageCollectorActor()))
+    val logCollectorRef   = system.actorOf(Props(new StorageMessageCollectorActor()))
 
     def logStorageMock: LogStorageMock
     val replicasMock = new ReplicasMock(new Replica(0L, testView), roundCollectorRef)
@@ -47,6 +46,11 @@ trait BftReplicaSpec extends Specification {
 
     override def after {
       system.terminate()
+    }
+
+    def initCollectors(roundExpectation: RoundMessageExpectation, logExpectation: StorageMessageExpectation) {
+      roundCollectorRef ! InitRoundCollector(roundExpectation)
+      logCollectorRef   ! InitStorageCollector(logExpectation)
     }
 
   }
