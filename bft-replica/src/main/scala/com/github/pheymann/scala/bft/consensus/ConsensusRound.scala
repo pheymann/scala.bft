@@ -9,8 +9,19 @@ trait ConsensusRound extends ConsensusRoundActor {
   protected def executeMessage(message: ConsensusMessage): Unit
 
   protected def isValidMessage(message: ConsensusMessage): Boolean = {
-    //TODO implement is valid
-    false
+    /*
+     * replica has to be in the same view
+     */
+    message.view == replicas.self.view &&
+    /*
+     * replica has not accepted a message with sequence number and view
+     * and different request digit
+     */
+    storage.hasAccepted(message) &&
+    /*
+     * sequence number is between h and H (water marks)
+     */
+    storage.isWithinWatermarks(message)
   }
 
   private var roundHasStarted = false

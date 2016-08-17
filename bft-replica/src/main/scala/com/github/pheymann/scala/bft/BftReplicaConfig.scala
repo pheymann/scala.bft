@@ -8,4 +8,7 @@ object BftReplicaConfig {
 
   val expectedFaultyReplicas = config.getInt("expected.faulty-replicas")
 
+  val lowWatermark  = config.getInt("water-mark.low")
+  val highWatermark = config.getInt("water-mark.high")
+
 }

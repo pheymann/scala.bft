@@ -6,6 +6,10 @@ import com.github.pheymann.scala.bft.util.ClientRequest
 
 trait LogStorage extends Extension {
 
+  def hasAccepted(message: ConsensusMessage): Boolean
+
+  def isWithinWatermarks(message: ConsensusMessage): Boolean
+
   def startForRequest(request: ClientRequest):  Unit
   def addPrePrepare(message: ConsensusMessage): Unit
   def addPrepare(message: ConsensusMessage):    Unit
@@ -26,6 +30,14 @@ object LogStorage extends ExtensionId[LogStorage]
 class LogStorageInterface(implicit system: ActorSystem) extends LogStorage {
 
   //TODO implement storage procedures
+
+  override def hasAccepted(message: ConsensusMessage): Boolean = {
+    false
+  }
+
+  override def isWithinWatermarks(message: ConsensusMessage): Boolean = {
+    false
+  }
 
   override def startForRequest(request: ClientRequest) {
 

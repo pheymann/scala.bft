@@ -6,6 +6,8 @@ import com.github.pheymann.scala.bft.util.ClientRequest
 
 trait Replicas extends Extension {
 
+  def self: Replica
+
   def sendMessage(message: ConsensusMessage): Unit
   def sendRequest(message: ConsensusMessage, request: ClientRequest): Unit
 
@@ -20,6 +22,9 @@ object Replicas extends ExtensionId[Replicas] with ExtensionIdProvider {
 }
 
 class ReplicasNetwork(implicit system: ActorSystem) extends Replicas {
+
+  //TODO determine correct self replica reference
+  val self = new Replica(0l, 0l)
 
   override def sendMessage(message: ConsensusMessage) {
     //TODO implement send message
