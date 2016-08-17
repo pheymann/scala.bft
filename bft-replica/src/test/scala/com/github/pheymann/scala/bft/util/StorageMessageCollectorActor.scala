@@ -4,9 +4,10 @@ import akka.actor.Actor
 import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.PrePrepare
 import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
+import com.github.pheymann.scala.bft.util.CollectorStateObserver.CheckState
 
 
-class StorageMessageCollectorActor extends Actor {
+class StorageMessageCollectorActor(expectation: StorageMessageExpectation) extends Actor {
 
   import StorageMessageCollectorActor._
 
@@ -22,6 +23,15 @@ class StorageMessageCollectorActor extends Actor {
     case message: AddPrepare    => addPrepareOpt = Some(message)
     case message: AddCommit => addCommitOpt = Some(message)
     case message: Finish    => finishOpt = Some(message)
+
+    case CheckState =>
+      sender() ! {
+        startOpt.isDefined == expectation.isStart &&
+        addPrePrepareOpt.isDefined == expectation.isPrePrepare &&
+        addPrepareOpt.isDefined == expectation.isPrepare &&
+        addCommitOpt.isDefined  == expectation.isCommit &&
+        finishOpt.isDefined     == expectation.isFinish
+      }
   }
 
 }

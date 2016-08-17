@@ -5,8 +5,9 @@ import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
 import com.github.pheymann.scala.bft.consensus.ConsensusMessage
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.PrePrepare
 import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
+import com.github.pheymann.scala.bft.util.CollectorStateObserver.CheckState
 
-class RoundMessageCollectorActor extends Actor {
+class RoundMessageCollectorActor(expectation: RoundMessageExpectation) extends Actor {
 
   import RoundMessageCollectorActor._
 
@@ -22,6 +23,13 @@ class RoundMessageCollectorActor extends Actor {
     case message: Commit => commitBuffer += message
 
     case message: RequestDeliveryMock => requestDeliveryOpt = Some(message)
+
+    case CheckState =>
+      sender() ! {
+        prePrepareBuffer.length == expectation.prePrepareNumber &&
+        prepareBuffer.length    == expectation.prepareNumber &&
+        commitBuffer.length     == expectation.commitNumber
+      }
   }
 
 }

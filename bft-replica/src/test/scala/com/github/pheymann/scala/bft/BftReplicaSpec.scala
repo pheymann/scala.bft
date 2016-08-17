@@ -1,11 +1,14 @@
 package com.github.pheymann.scala.bft
 
 import akka.actor.{ActorSystem, Props}
+import akka.util.Timeout
 import com.github.pheymann.scala.bft.consensus.ConsensusContext
-import com.github.pheymann.scala.bft.replica.{Replica, ReplicaContextMock}
+import com.github.pheymann.scala.bft.replica.{Replica, ReplicaContextMock, ReplicasMock}
 import com.github.pheymann.scala.bft.storage.LogStorageMock
-import com.github.pheymann.scala.bft.util.{ClientRequest, RequestDigitsGenerator, RoundMessageCollectorActor, StorageMessageCollectorActor}
+import com.github.pheymann.scala.bft.util._
 import org.specs2.mutable.{After, Specification}
+
+import scala.concurrent.duration._
 
 trait BftReplicaSpec extends Specification {
 
@@ -24,11 +27,23 @@ trait BftReplicaSpec extends Specification {
       testRequestDigits
     )
 
+    val timeoutDuration   = 5.second
+    implicit val timeout  = Timeout(timeoutDuration)
     implicit val system = ActorSystem("test-system")
 
-    def logStorageMock: LogStorageMock
+    def roundExpectation:   RoundMessageExpectation
+    def storageExpectation: StorageMessageExpectation
 
-    implicit val replicaContext = new ReplicaContextMock(new Replica(0L, testView), logStorageMock)
+    val roundCollectorRef = system.actorOf(Props(new RoundMessageCollectorActor(roundExpectation)))
+    val logCollectorRef   = system.actorOf(Props(new StorageMessageCollectorActor(storageExpectation)))
+
+    def logStorageMock: LogStorageMock
+    val replicasMock = new ReplicasMock(new Replica(0L, testView), roundCollectorRef)
+
+    implicit val replicaContext = new ReplicaContextMock(replicasMock, logStorageMock)
+
+    val roundObserver = new CollectorStateObserver(roundCollectorRef)
+    val logObserver   = new CollectorStateObserver(logCollectorRef)
 
     override def after {
       system.terminate()
