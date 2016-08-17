@@ -27,23 +27,23 @@ class LogStorageInterface(implicit system: ActorSystem) extends LogStorage {
 
   //TODO implement storage procedures
 
-  override def startForRequest(request: ClientRequest): Unit = {
+  override def startForRequest(request: ClientRequest) {
 
   }
 
-  override def addPrePrepare(message: ConsensusMessage): Unit = {
+  override def addPrePrepare(message: ConsensusMessage) {
 
   }
 
-  override def addPrepare(message: ConsensusMessage): Unit = {
+  override def addPrepare(message: ConsensusMessage) {
 
   }
 
-  override def addCommit(message: ConsensusMessage): Unit= {
+  override def addCommit(message: ConsensusMessage) {
 
   }
 
-  override def persist(message: ConsensusMessage): Unit = {
+  override def persist(message: ConsensusMessage) {
 
   }
 

@@ -1,6 +1,6 @@
 package com.github.pheymann.scala.bft.consensus
 
-trait ConsensusRound extends ConsensusActor {
+trait ConsensusRound extends ConsensusRoundActor {
 
   import ConsensusRound._
 
@@ -8,14 +8,14 @@ trait ConsensusRound extends ConsensusActor {
   protected def expectedMessages: Int
   protected def executeMessage(message: ConsensusMessage): Unit
 
-  protected var roundHasStarted = false
-  protected var roundIsComplete = false
-  protected var messageCounter  = 0
-
   protected def isValidMessage(message: ConsensusMessage): Boolean = {
     //TODO implement is valid
     false
   }
+
+  private var roundHasStarted = false
+  private var roundIsComplete = false
+  private var messageCounter  = 0
 
   override def receive = {
     case _: StartRound =>

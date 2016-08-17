@@ -1,6 +1,8 @@
 package com.github.pheymann.scala.bft.consensus
 
-class PrePrepareRound(implicit val consensusContext: ConsensusContext) extends ConsensusActor {
+import com.github.pheymann.scala.bft.util.ClientRequest
+
+class PrePrepareRound(implicit val consensusContext: ConsensusContext) extends ConsensusRoundActor {
 
   import PrePrepareRound._
 
@@ -18,8 +20,10 @@ class PrePrepareRound(implicit val consensusContext: ConsensusContext) extends C
       replicas.sendMessage(message)
       replicas.sendRequest(message, consensusContext.request)
 
-    case JoinConsensus =>
+      sender() ! FinishedPrePrepare
 
+    case JoinConsensus =>
+      sender() ! FinishedPrePrepare
   }
 
 }
@@ -28,7 +32,9 @@ object PrePrepareRound {
 
   case object StartConsensus
   case object JoinConsensus
+  case object FinishedPrePrepare
 
   case class PrePrepare(sequenceNumber: Long, view: Long, requestDigits: Array[Byte]) extends ConsensusMessage
+  case class RequestDelivery(request: ClientRequest, sequenceNumber: Long, view: Long)
 
 }

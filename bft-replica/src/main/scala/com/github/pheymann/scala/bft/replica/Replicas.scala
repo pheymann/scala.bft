@@ -21,11 +21,11 @@ object Replicas extends ExtensionId[Replicas] with ExtensionIdProvider {
 
 class ReplicasNetwork(implicit system: ActorSystem) extends Replicas {
 
-  override def sendMessage(message: ConsensusMessage): Unit = {
+  override def sendMessage(message: ConsensusMessage) {
     //TODO implement send message
   }
 
-  override def sendRequest(message: ConsensusMessage, request: ClientRequest): Unit = {
+  override def sendRequest(message: ConsensusMessage, request: ClientRequest) {
     //TODO implement send request
   }
 

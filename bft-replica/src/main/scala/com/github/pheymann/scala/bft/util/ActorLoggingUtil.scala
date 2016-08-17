@@ -4,7 +4,7 @@ import akka.actor.ActorLogging
 
 trait ActorLoggingUtil { this: ActorLogging =>
 
-  def debug(msg: => String): Unit = {
+  def debug(msg: => String) {
     if (log.isDebugEnabled)
       log.debug(msg)
   }
