@@ -10,6 +10,7 @@ import com.github.pheymann.scala.bft.util.StorageMessageCollectorActor.InitStora
 import com.github.pheymann.scala.bft.util._
 import org.specs2.mutable.{After, Specification}
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 trait BftReplicaSpec extends Specification {
@@ -57,6 +58,18 @@ trait BftReplicaSpec extends Specification {
     def initCollectors(roundExpectation: RoundMessageExpectation, logExpectation: StorageMessageExpectation) {
       roundCollectorRef ! InitRoundCollector(roundExpectation)
       logCollectorRef   ! InitStorageCollector(logExpectation)
+    }
+
+    // when returning the expectations are fulfilled in the collectors
+    def observedResult(implicit timeout: Timeout) = {
+      import system.dispatcher
+
+      val result = for {
+        roundValid  <- roundObserver.checkCollector
+        logValid    <- logObserver.checkCollector
+      } yield roundValid && logValid
+
+      Await.result(result, timeoutDuration)
     }
 
   }

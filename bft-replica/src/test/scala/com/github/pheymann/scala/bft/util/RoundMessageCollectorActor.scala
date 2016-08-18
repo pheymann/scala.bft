@@ -33,12 +33,18 @@ class RoundMessageCollectorActor  extends Actor
     case message: RequestDeliveryMock => requestDeliveryOpt = Some(message)
 
     case CheckState =>
-      debug(s"pre-prepare: ${prePrepareBuffer.length}, prepare: ${prepareBuffer.length}, commit: ${commitBuffer.length}")
+      debug(s"pre-prepare: %d, prepare: %d, commit: %d, is request: %s".format(
+        prePrepareBuffer.length,
+        prepareBuffer.length,
+        commitBuffer.length,
+        requestDeliveryOpt.isDefined
+      ))
 
       sender() ! {
         prePrepareBuffer.length == expectation.prePrepareNumber &&
         prepareBuffer.length    == expectation.prepareNumber &&
-        commitBuffer.length     == expectation.commitNumber
+        commitBuffer.length     == expectation.commitNumber &&
+        requestDeliveryOpt.isDefined == expectation.isRequestDelivery
       }
   }
 

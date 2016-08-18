@@ -1,12 +1,15 @@
 package com.github.pheymann.scala.bft.consensus
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.Props
+import akka.pattern.ask
+import akka.util.Timeout
 import com.github.pheymann.scala.bft.{BftReplicaConfig, BftReplicaSpec}
-import com.github.pheymann.scala.bft.consensus.CommitRound.{Commit, StartCommit}
-import com.github.pheymann.scala.bft.consensus.PrepareRound.{Prepare, StartPrepare}
-import com.github.pheymann.scala.bft.util.{CollectorStateObserver, RoundMessageExpectation, StorageMessageExpectation}
+import com.github.pheymann.scala.bft.consensus.CommitRound.{Commit, FinishedCommit, StartCommit}
+import com.github.pheymann.scala.bft.consensus.PrepareRound.{FinishedPrepare, Prepare, StartPrepare}
+import com.github.pheymann.scala.bft.util.{RoundMessageExpectation, StorageMessageExpectation}
 
 import scala.concurrent._
+import scala.concurrent.duration._
 
 class ConsensusRoundSpec extends BftReplicaSpec {
 
@@ -20,7 +23,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
       commitRound ! StartCommit
 
-      observedResult(roundObserver, logObserver) should beTrue
+      observedResult should beTrue
     }
 
     "(Prepare Round) reach consensus when 2f messages are received" in new SpecContext {
@@ -32,10 +35,11 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
       prepareRound ! StartPrepare
 
-      for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas))
+      for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas - 1))
         prepareRound ! Prepare(testSequenceNumber, testView, testRequestDigits)
 
-      observedResult(roundObserver, logObserver) should beTrue
+      Await.result(prepareRound ? Prepare(testSequenceNumber, testView, testRequestDigits), timeoutDuration) === FinishedPrepare
+      observedResult should beTrue
     }
 
     "(Commit Round) reach consensus when 2f + 1 messages are received" in new SpecContext {
@@ -47,10 +51,11 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
       commitRound ! StartCommit
 
-      for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas + 1))
+      for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas))
         commitRound ! Commit(testSequenceNumber, testView, testRequestDigits)
 
-      observedResult(roundObserver, logObserver) should beTrue
+      Await.result(commitRound ? Commit(testSequenceNumber, testView, testRequestDigits), timeoutDuration) === FinishedCommit
+      observedResult should beTrue
     }
 
     "(Prepare|Commit Round) and just ignore additional messages" in new SpecContext {
@@ -65,7 +70,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
       for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas + 1 + 3))
         commitRound ! Commit(testSequenceNumber, testView, testRequestDigits)
 
-      observedResult(roundObserver, logObserver) should beTrue
+      observedResult should beTrue
     }
 
     "(Prepare|Commit Round) finish directly on start if the consensus was already found" in new SpecContext {
@@ -80,7 +85,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
       commitRound ! StartCommit
 
-      observedResult(roundObserver, logObserver) should beTrue
+      observedResult should beTrue
     }
 
     "(Prepare|Commit Round) doesn't accept invalid messages" in new SpecContext {
@@ -88,6 +93,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
       initCollectors(RoundMessageExpectation(commitNumber = 1), StorageMessageExpectation(isCommit = true, isFinish = true))
 
+      val shortTimeout = Timeout(1.second)
       val commitRound = system.actorOf(Props(new CommitRound()))
 
       commitRound ! StartCommit
@@ -97,21 +103,8 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
       commitRound ! Commit(testSequenceNumber, testView + 1, testRequestDigits)
 
-      observedResult(roundObserver, logObserver) should throwA[TimeoutException]
+      observedResult(shortTimeout) should throwA[TimeoutException]
     }
-  }
-
-  // when returning the expectations are fulfilled in the collectors
-  private def observedResult(roundObserver: CollectorStateObserver, logObserver: CollectorStateObserver)
-                            (implicit system: ActorSystem) = {
-    import system.dispatcher
-
-    val result = for {
-      roundValid  <- roundObserver.checkCollector
-      logValid    <- logObserver.checkCollector
-    } yield roundValid && logValid
-
-    Await.result(result, timeoutDuration)
   }
 
 }
