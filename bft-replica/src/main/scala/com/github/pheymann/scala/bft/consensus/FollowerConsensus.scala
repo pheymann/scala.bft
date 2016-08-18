@@ -28,7 +28,8 @@ case class FollowerConsensus(implicit val replicaContext: ReplicaContext) extend
       requestDeliverOpt.foreach { requestDelivery =>
         if (
           message.sequenceNumber == requestDelivery.sequenceNumber &&
-          message.view == requestDelivery.view
+          message.view == requestDelivery.view &&
+          replicaContext.storage.hasAcceptedOrUnknown(message)
         ) {
           val requestDigits = RequestDigitsGenerator.generateDigits(requestDelivery.request)
 

@@ -6,4 +6,10 @@ trait ConsensusMessage {
   def view:           Long
   def requestDigits:  Array[Byte]
 
+  lazy val toLog = "{%d,%d,[%s]}".format(
+    sequenceNumber,
+    view,
+    requestDigits.mkString("")
+  )
+
 }

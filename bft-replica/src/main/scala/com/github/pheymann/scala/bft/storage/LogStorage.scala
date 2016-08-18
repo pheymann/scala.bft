@@ -6,7 +6,7 @@ import com.github.pheymann.scala.bft.util.ClientRequest
 
 trait LogStorage extends Extension {
 
-  def hasAccepted(message: ConsensusMessage): Boolean
+  def hasAcceptedOrUnknown(message: ConsensusMessage): Boolean
 
   def isWithinWatermarks(message: ConsensusMessage): Boolean
 
@@ -31,7 +31,7 @@ class LogStorageInterface(implicit system: ActorSystem) extends LogStorage {
 
   //TODO implement storage procedures
 
-  override def hasAccepted(message: ConsensusMessage): Boolean = {
+  override def hasAcceptedOrUnknown(message: ConsensusMessage): Boolean = {
     false
   }
 

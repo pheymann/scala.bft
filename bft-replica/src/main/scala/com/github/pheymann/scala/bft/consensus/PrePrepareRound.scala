@@ -11,7 +11,9 @@ class PrePrepareRound(
 
   import PrePrepareRound._
 
-  private val message = PrePrepare(
+  protected val round = roundName
+
+  protected val message = PrePrepare(
     consensusContext.sequenceNumber,
     consensusContext.view,
     consensusContext.requestDigits
@@ -34,6 +36,8 @@ class PrePrepareRound(
 }
 
 object PrePrepareRound {
+
+  private val roundName = "pre-prepare"
 
   case object StartConsensus
   case object JoinConsensus

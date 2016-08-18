@@ -2,7 +2,7 @@ package com.github.pheymann.scala.bft
 
 import akka.actor.{ActorSystem, Props}
 import akka.util.Timeout
-import com.github.pheymann.scala.bft.consensus.ConsensusContext
+import com.github.pheymann.scala.bft.consensus.{ConsensusContext, ConsensusMessage}
 import com.github.pheymann.scala.bft.replica.{Replica, ReplicaContextMock, ReplicasMock}
 import com.github.pheymann.scala.bft.storage.LogStorageMock
 import com.github.pheymann.scala.bft.util.RoundMessageCollectorActor.InitRoundCollector
@@ -14,32 +14,38 @@ import scala.concurrent.duration._
 
 trait BftReplicaSpec extends Specification {
 
-  val testSequenceNumber  = 0L
-  val testView            = 0L
-
   val testRequest       = ClientRequest()
   val testRequestDigits = RequestDigitsGenerator.generateDigits(testRequest)
 
+  val timeoutDuration   = 5.second
+  implicit val timeout  = Timeout(timeoutDuration)
+
   trait SpecContext extends After {
 
-    implicit val consensusContext = ConsensusContext(
+    var testSequenceNumber  = 0L
+    val testView            = 0L
+
+    implicit lazy val consensusContext = ConsensusContext(
       testSequenceNumber,
       testView,
       testRequest,
       testRequestDigits
     )
 
-    val timeoutDuration   = 5.second
-    implicit val timeout  = Timeout(timeoutDuration)
     implicit val system = ActorSystem("test-system")
 
     val roundCollectorRef = system.actorOf(Props(new RoundMessageCollectorActor()))
     val logCollectorRef   = system.actorOf(Props(new StorageMessageCollectorActor()))
 
-    def logStorageMock: LogStorageMock
+    val logStorageMock = new LogStorageMock {
+      val _logCollectorRef = logCollectorRef
+
+      override def isWithinWatermarks(message: ConsensusMessage) = true
+      override def hasAcceptedOrUnknown(message: ConsensusMessage) = true
+    }
     val replicasMock = new ReplicasMock(new Replica(0L, testView), roundCollectorRef)
 
-    implicit val replicaContext = new ReplicaContextMock(replicasMock, logStorageMock)
+    implicit lazy val replicaContext = new ReplicaContextMock(replicasMock, logStorageMock)
 
     val roundObserver = new CollectorStateObserver(roundCollectorRef)
     val logObserver   = new CollectorStateObserver(logCollectorRef)

@@ -12,6 +12,8 @@ class PrepareRound(
 
   import PrepareRound._
 
+  protected val round = roundName
+
   protected final val expectedMessages = 2 * BftReplicaConfig.expectedFaultyReplicas
 
   protected val message = Prepare(
@@ -27,6 +29,8 @@ class PrepareRound(
 }
 
 object PrepareRound {
+
+  private val roundName = "prepare"
 
   case object StartPrepare extends StartRound
   case object FinishedPrepare

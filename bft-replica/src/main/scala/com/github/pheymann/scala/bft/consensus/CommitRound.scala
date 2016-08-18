@@ -12,6 +12,8 @@ class CommitRound(
 
   import CommitRound._
 
+  protected val round = roundName
+
   protected final val expectedMessages = 2 * BftReplicaConfig.expectedFaultyReplicas + 1
 
   protected val message = Commit(
@@ -28,6 +30,8 @@ class CommitRound(
 }
 
 object CommitRound {
+
+  private val roundName = "commit"
 
   case object StartCommit extends StartRound
   case object FinishedCommit
