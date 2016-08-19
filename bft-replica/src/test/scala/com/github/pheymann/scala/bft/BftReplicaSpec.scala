@@ -44,7 +44,7 @@ trait BftReplicaSpec extends Specification {
       override def isWithinWatermarks(message: ConsensusMessage) = true
       override def hasAcceptedOrUnknown(message: ConsensusMessage) = true
     }
-    val replicasMock = new ReplicasMock(new Replica(0L, testView), roundCollectorRef)
+    val replicasMock = new ReplicasMock(new Replica(0L, testView, testSequenceNumber), roundCollectorRef)
 
     implicit lazy val replicaContext = new ReplicaContextMock(replicasMock, logStorageMock)
 

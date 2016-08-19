@@ -24,7 +24,7 @@ object Replicas extends ExtensionId[Replicas] with ExtensionIdProvider {
 class ReplicasNetwork(implicit system: ActorSystem) extends Replicas {
 
   //TODO determine correct self replica reference
-  val self = new Replica(0l, 0l)
+  val self = new Replica(0l, 0l, 0l)
 
   override def sendMessage(message: ConsensusMessage) {
     //TODO implement send message

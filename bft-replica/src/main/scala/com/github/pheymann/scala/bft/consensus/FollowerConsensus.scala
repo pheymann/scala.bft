@@ -1,46 +1,31 @@
 package com.github.pheymann.scala.bft.consensus
 
+import akka.pattern.ask
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, PrePrepare, RequestDelivery}
 import com.github.pheymann.scala.bft.replica.ReplicaContext
-import com.github.pheymann.scala.bft.util.{ClientRequest, RequestDigitsGenerator}
+import com.github.pheymann.scala.bft.util.ClientRequest
 
-case class FollowerConsensus(implicit val replicaContext: ReplicaContext) extends ConsensusInstance {
+case class FollowerConsensus(request: ClientRequest)
+                            (implicit val replicaContext: ReplicaContext) extends ConsensusInstance {
 
-  var request: ClientRequest = _
+  import com.github.pheymann.scala.bft.BftReplicaConfig.consensusTimeout
 
-  private var messageOpt: Option[PrePrepare] = None
-  private var requestDeliverOpt: Option[RequestDelivery] = None
+  override def runConsensus = prePrepareRound ? JoinConsensus
 
-  override def receive = {
-    case message: PrePrepare =>
-      messageOpt = Some(message)
+}
 
-      startConsensusIfReady()
+object FollowerConsensus {
 
-    case requestDelivery: RequestDelivery =>
-      requestDeliverOpt = Some(requestDelivery)
-
-      startConsensusIfReady()
-  }
-
-  private def startConsensusIfReady() {
-    messageOpt.foreach { message =>
-      requestDeliverOpt.foreach { requestDelivery =>
-        if (
-          message.sequenceNumber == requestDelivery.sequenceNumber &&
-          message.view == requestDelivery.view &&
-          replicaContext.storage.hasAcceptedOrUnknown(message)
-        ) {
-          val requestDigits = RequestDigitsGenerator.generateDigits(requestDelivery.request)
-
-          if (message.requestDigits.sameElements(requestDigits)) {
-            request = requestDelivery.request
-
-            prePrepareRound ! JoinConsensus
-          }
-        }
-      }
-    }
+  def createIfValid(message: PrePrepare, requestDelivery: RequestDelivery)
+                   (implicit replicaContext: ReplicaContext): Option[FollowerConsensus] = {
+    if (
+      message.sequenceNumber == requestDelivery.sequenceNumber &&
+      message.view == requestDelivery.view &&
+      replicaContext.storage.hasAcceptedOrUnknown(message)
+    )
+      Some(FollowerConsensus(requestDelivery.request))
+    else
+      None
   }
 
 }
