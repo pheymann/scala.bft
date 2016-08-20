@@ -1,4 +1,4 @@
-package com.github.pheymann.scala.bft
+package com.github.pheymann.scala.bft.consensus
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.github.pheymann.scala.bft.util.CollectorStateObserver.{LogCollectorReady, RoundCollectorReady}

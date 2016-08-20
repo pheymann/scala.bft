@@ -1,7 +1,6 @@
 package com.github.pheymann.scala.bft.consensus
 
 import akka.actor.{ActorRef, ActorSystem}
-import com.github.pheymann.scala.bft.ConsensusCollectors
 import com.github.pheymann.scala.bft.replica.{Replica, ReplicaContextMock, ReplicasMock}
 import com.github.pheymann.scala.bft.storage.LogStorageMock
 import com.github.pheymann.scala.bft.util.{ClientRequest, RequestDigitsGenerator}
