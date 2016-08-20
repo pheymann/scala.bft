@@ -6,6 +6,7 @@ import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
 import com.github.pheymann.scala.bft.consensus.ConsensusInstance.FinishedConsensus
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, StartConsensus}
 import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
+import com.github.pheymann.scala.bft.util.CollectorStateObserver.CollectorsReady
 import com.github.pheymann.scala.bft.{BftReplicaConfig, BftReplicaSpec, WithActorSystem}
 import com.github.pheymann.scala.bft.util._
 
@@ -19,7 +20,7 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
   """The Consensus Instance and its two implementations for Leaders and Followers is the atomic unit
     |of the protocol handling the three consensus protocol and the internal state. It
   """.stripMargin should {
-    "reach a consensus if all rounds have passed for leader replicas" in new WithActorSystem {
+    "reach a consensus if all rounds have passed for leader replica" in new WithActorSystem {
       val request     = new ClientRequest(Array[Byte](0))
       val specContext = new ConsensusSpecContext(self, request, 1)
 
@@ -33,7 +34,7 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
         consensus.instanceRef ! StartConsensus
 
         sendMessages(consensus, specContext)
-        expectMsg(FinishedConsensus)
+        expectMsgAllOf(FinishedConsensus, CollectorsReady)
       }
     }
 
@@ -43,7 +44,7 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
       import specContext.replicaContext
 
-      specContext.collectors.initCollectors(RoundMessageExpectation.forValidConsensus, StorageMessageExpectation.forValidConsensus)
+      specContext.collectors.initCollectors(RoundMessageExpectation(0, 1, 1), StorageMessageExpectation.forValidConsensus)
 
       val consensus = new FollowerConsensus(request)
 
@@ -51,7 +52,7 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
         consensus.instanceRef ! JoinConsensus
 
         sendMessages(consensus, specContext)
-        expectMsg(FinishedConsensus)
+        expectMsgAllOf(FinishedConsensus, CollectorsReady)
       }
     }
 
