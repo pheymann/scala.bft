@@ -4,6 +4,8 @@ import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorSystem
 import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
+import com.github.pheymann.scala.bft.consensus.ConsensusInstance.FinishedConsensus
+import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, StartConsensus}
 import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
 import com.github.pheymann.scala.bft.{BftReplicaConfig, BftReplicaSpec, WithActorSystem}
 import com.github.pheymann.scala.bft.util._
@@ -20,7 +22,7 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
   """.stripMargin should {
     "reach a consensus if all rounds have passed for leader replicas" in new WithActorSystem {
       val request     = new ClientRequest(Array[Byte](0))
-      val specContext = new ConsensusSpecContext(request)
+      val specContext = new ConsensusSpecContext(request, 1)
 
       import specContext.replicaContext
 
@@ -28,12 +30,17 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
       val consensus = new LeaderConsensus(request)
 
-      testConsensus(consensus, specContext)
+      within(10.seconds) {
+        consensus.instanceRef ! StartConsensus
+
+        sendMessages(consensus, specContext)
+        expectMsg(FinishedConsensus)
+      }
     }
 
     "reach a consensus if all rounds have passed for follower replicas" in new WithActorSystem {
       val request     = new ClientRequest(Array[Byte](1))
-      val specContext = new ConsensusSpecContext(request)
+      val specContext = new ConsensusSpecContext(request, 1)
 
       import specContext.replicaContext
 
@@ -41,12 +48,17 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
       val consensus = new FollowerConsensus(request)
 
-      testConsensus(consensus, specContext)
+      within(10.seconds) {
+        consensus.instanceRef ! JoinConsensus
+
+        sendMessages(consensus, specContext)
+        expectMsg(FinishedConsensus)
+      }
     }
 
     "not reach a consensus when not all round conditions are fulfilled" in new WithActorSystem {
       val request     = new ClientRequest(Array[Byte](2))
-      val specContext = new ConsensusSpecContext(request)
+      val specContext = new ConsensusSpecContext(request, 1)
 
       import specContext.replicaContext
       import system.dispatcher
@@ -66,21 +78,12 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
     }
   }
 
-  def testConsensus(instance: ConsensusInstance, specContext: ConsensusSpecContext)
-                   (implicit system: ActorSystem) = {
-    import system.dispatcher
-
-    val resultFut = Future {
-      isConsensus(instance)
-    }
-
+  def sendMessages(instance: ConsensusInstance, specContext: ConsensusSpecContext) {
     for (index <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas))
       instance.instanceRef ! Prepare(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
     for (index <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas + 1))
       instance.instanceRef ! Commit(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
-
-    Await.result(resultFut, 10.seconds) should beTrue
   }
 
   def isConsensus(instance: ConsensusInstance): Boolean = {
