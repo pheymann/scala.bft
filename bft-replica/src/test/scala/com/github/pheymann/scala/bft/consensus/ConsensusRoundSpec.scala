@@ -3,7 +3,7 @@ package com.github.pheymann.scala.bft.consensus
 import akka.actor.Props
 import akka.pattern.ask
 import akka.util.Timeout
-import com.github.pheymann.scala.bft.{BftReplicaConfig, BftReplicaSpec}
+import com.github.pheymann.scala.bft.{BftReplicaConfig, BftReplicaSpec, WithActorSystem}
 import com.github.pheymann.scala.bft.consensus.CommitRound.{Commit, FinishedCommit, StartCommit}
 import com.github.pheymann.scala.bft.consensus.PrepareRound.{FinishedPrepare, Prepare, StartPrepare}
 import com.github.pheymann.scala.bft.util.{ClientRequest, RoundMessageExpectation, StorageMessageExpectation}
@@ -14,12 +14,12 @@ import scala.concurrent.duration._
 
 class ConsensusRoundSpec extends BftReplicaSpec {
 
-  import BftReplicaConfig._
+  sequential
 
   """The two different implementations of ConsensusRound are tested in this Spec.
     |
     |A consensus round""".stripMargin should {
-    "(Prepare|Commit Round) distribute the current round message to all replicas on start" in { implicit ee: ExecutionEnv =>
+    "(Prepare|Commit Round) distribute the current round message to all replicas on start" in new WithActorSystem {
       val request = new ClientRequest(Array[Byte](0))
       val specContext = new ConsensusSpecContext(request)
 
@@ -31,10 +31,10 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
       commitRound ! StartCommit
 
-      specContext.collectors.observedResult should beTrue.await(0, testDuration)
+      Await.result(specContext.collectors.observedResult, testDuration) should beTrue
     }
 
-    "(Prepare Round) reach consensus when 2f messages are received" in { implicit ee: ExecutionEnv =>
+    "(Prepare Round) reach consensus when 2f messages are received" in new WithActorSystem {
       val request = new ClientRequest(Array[Byte](1))
       val specContext = new ConsensusSpecContext(request)
 
@@ -49,15 +49,17 @@ class ConsensusRoundSpec extends BftReplicaSpec {
       for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas - 1))
         prepareRound ! Prepare(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
+      implicit val _timeout = testTimeout
+
       Await.result(
         prepareRound ? Prepare(specContext.sequenceNumber, specContext.view, specContext.requestDigits),
         BftReplicaConfig.timeoutDuration
       ) === FinishedPrepare
 
-      specContext.collectors.observedResult should beTrue.await(0, testDuration)
+      Await.result(specContext.collectors.observedResult, testDuration) should beTrue
     }
 
-    "(Commit Round) reach consensus when 2f + 1 messages are received" in { implicit ee: ExecutionEnv =>
+    "(Commit Round) reach consensus when 2f + 1 messages are received" in new WithActorSystem {
       val request = new ClientRequest(Array[Byte](2))
       val specContext = new ConsensusSpecContext(request)
 
@@ -72,15 +74,17 @@ class ConsensusRoundSpec extends BftReplicaSpec {
       for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas))
         commitRound ! Commit(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
+      implicit val _timeout = testTimeout
+
       Await.result(
         commitRound ? Commit(specContext.sequenceNumber, specContext.view, specContext.requestDigits),
         BftReplicaConfig.timeoutDuration
       ) === FinishedCommit
 
-      specContext.collectors.observedResult should beTrue.await(0, testDuration)
+      Await.result(specContext.collectors.observedResult, testDuration) should beTrue
     }
 
-    "(Prepare|Commit Round) and just ignore additional messages" in { implicit ee: ExecutionEnv =>
+    "(Prepare|Commit Round) and just ignore additional messages" in new WithActorSystem {
       val request = new ClientRequest(Array[Byte](3))
       val specContext = new ConsensusSpecContext(request)
 
@@ -95,10 +99,10 @@ class ConsensusRoundSpec extends BftReplicaSpec {
       for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas + 1 + 3))
         commitRound ! Commit(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
-      specContext.collectors.observedResult should beTrue.await(0, testDuration)
+      Await.result(specContext.collectors.observedResult, testDuration) should beTrue
     }
 
-    "(Prepare|Commit Round) finish directly on start if the consensus was already found" in { implicit ee: ExecutionEnv =>
+    "(Prepare|Commit Round) finish directly on start if the consensus was already found" in new WithActorSystem {
       val request = new ClientRequest(Array[Byte](4))
       val specContext = new ConsensusSpecContext(request)
 
@@ -113,10 +117,10 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
       commitRound ! StartCommit
 
-      specContext.collectors.observedResult should beTrue.await(0, testDuration)
+      Await.result(specContext.collectors.observedResult, testDuration) should beTrue
     }
 
-    "(Prepare|Commit Round) doesn't accept invalid messages" in { implicit ee: ExecutionEnv =>
+    "(Prepare|Commit Round) doesn't accept invalid messages" in new WithActorSystem {
       val request = new ClientRequest(Array[Byte](5))
       val specContext = new ConsensusSpecContext(request)
 
@@ -133,13 +137,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
       commitRound ! Commit(specContext.sequenceNumber, specContext.view + 1, specContext.requestDigits)
 
-      (try {
-        Await.result(specContext.collectors.observedResult, 1.second)
-        false
-      }
-      catch {
-        case _: TimeoutException => true
-      }) should beTrue
+      Await.result(specContext.collectors.observedResult, 2.seconds) should throwA[TimeoutException]
     }
   }
 }

@@ -1,13 +1,13 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.BftReplicaSpec
+import com.github.pheymann.scala.bft.{BftReplicaSpec, WithActorSystem}
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{PrePrepare, RequestDelivery}
 import com.github.pheymann.scala.bft.util.ClientRequest
 
 class FollowerConsensusSpec extends BftReplicaSpec {
 
   "The Follower Consensus" should {
-    "only create an instance of its type if the given request and pre-prepare message are valid" in {
+    "only create an instance of its type if the given request and pre-prepare message are valid" in new WithActorSystem {
       val request     = new ClientRequest(Array[Byte](0))
       val specContext = new ConsensusSpecContext(request)
       val message     = PrePrepare(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
