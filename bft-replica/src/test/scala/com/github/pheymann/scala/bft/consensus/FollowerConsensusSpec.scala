@@ -9,7 +9,7 @@ class FollowerConsensusSpec extends BftReplicaSpec {
   "The Follower Consensus" should {
     "only create an instance of its type if the given request and pre-prepare message are valid" in new WithActorSystem {
       val request     = new ClientRequest(Array[Byte](0))
-      val specContext = new ConsensusSpecContext(request, 2)
+      val specContext = new ConsensusSpecContext(self, request, 2)
       val message     = PrePrepare(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
       import specContext.replicaContext
@@ -29,7 +29,7 @@ class FollowerConsensusSpec extends BftReplicaSpec {
         RequestDelivery(request, specContext.sequenceNumber, specContext.view + 1)
       ) === None
 
-      val specContextInvalid = new ConsensusSpecContext(request, logHasAcceptedOrUnknown = false)
+      val specContextInvalid = new ConsensusSpecContext(self,   request, logHasAcceptedOrUnknown = false)
 
       FollowerConsensus.createIfValid(
         message,

@@ -2,7 +2,6 @@ package com.github.pheymann.scala.bft.consensus
 
 import java.util.concurrent.TimeoutException
 
-import akka.actor.ActorSystem
 import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
 import com.github.pheymann.scala.bft.consensus.ConsensusInstance.FinishedConsensus
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, StartConsensus}
@@ -22,7 +21,7 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
   """.stripMargin should {
     "reach a consensus if all rounds have passed for leader replicas" in new WithActorSystem {
       val request     = new ClientRequest(Array[Byte](0))
-      val specContext = new ConsensusSpecContext(request, 1)
+      val specContext = new ConsensusSpecContext(self, request, 1)
 
       import specContext.replicaContext
 
@@ -40,7 +39,7 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
     "reach a consensus if all rounds have passed for follower replicas" in new WithActorSystem {
       val request     = new ClientRequest(Array[Byte](1))
-      val specContext = new ConsensusSpecContext(request, 1)
+      val specContext = new ConsensusSpecContext(self, request, 1)
 
       import specContext.replicaContext
 
@@ -58,7 +57,7 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
     "not reach a consensus when not all round conditions are fulfilled" in new WithActorSystem {
       val request     = new ClientRequest(Array[Byte](2))
-      val specContext = new ConsensusSpecContext(request, 1)
+      val specContext = new ConsensusSpecContext(self, request, 1)
 
       import specContext.replicaContext
       import system.dispatcher

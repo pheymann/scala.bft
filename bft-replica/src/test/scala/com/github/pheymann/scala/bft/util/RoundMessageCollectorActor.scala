@@ -1,15 +1,15 @@
 package com.github.pheymann.scala.bft.util
 
-import akka.actor.{Actor, ActorLogging}
+import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
 import com.github.pheymann.scala.bft.consensus.ConsensusMessage
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.PrePrepare
 import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
-import com.github.pheymann.scala.bft.util.CollectorStateObserver.CheckState
+import com.github.pheymann.scala.bft.util.CollectorStateObserver.RoundCollectorReady
 
-class RoundMessageCollectorActor  extends Actor
-                                  with    ActorLogging
-                                  with    ActorLoggingUtil {
+class RoundMessageCollectorActor(observerRef: ActorRef) extends Actor
+                                                        with    ActorLogging
+                                                        with    ActorLoggingUtil {
 
   import RoundMessageCollectorActor._
 
@@ -26,26 +26,37 @@ class RoundMessageCollectorActor  extends Actor
       expectation = expect
       debug(s"expectation: $expect")
 
-    case message: PrePrepare => prePrepareBuffer += message
-    case message: Prepare => prepareBuffer += message
-    case message: Commit => commitBuffer += message
+    case message: PrePrepare =>
+      prePrepareBuffer += message
+      sendStateIfReady()
+    case message: Prepare =>
+      prepareBuffer += message
+      sendStateIfReady()
+    case message: Commit =>
+      commitBuffer += message
+      sendStateIfReady()
 
-    case message: RequestDeliveryMock => requestDeliveryOpt = Some(message)
+    case message: RequestDeliveryMock =>
+      requestDeliveryOpt = Some(message)
+      sendStateIfReady()
+  }
 
-    case CheckState =>
-      debug(s"pre-prepare: %d, prepare: %d, commit: %d, is request: %s".format(
-        prePrepareBuffer.length,
-        prepareBuffer.length,
-        commitBuffer.length,
-        requestDeliveryOpt.isDefined
-      ))
+  private def sendStateIfReady() {
+    debug(s"pre-prepare: %d, prepare: %d, commit: %d, is request: %s".format(
+      prePrepareBuffer.length,
+      prepareBuffer.length,
+      commitBuffer.length,
+      requestDeliveryOpt.isDefined
+    ))
 
-      sender() ! {
-        prePrepareBuffer.length == expectation.prePrepareNumber &&
-        prepareBuffer.length    == expectation.prepareNumber &&
-        commitBuffer.length     == expectation.commitNumber &&
-        requestDeliveryOpt.isDefined == expectation.isRequestDelivery
-      }
+    if (
+      prePrepareBuffer.length == expectation.prePrepareNumber &&
+      prepareBuffer.length    == expectation.prepareNumber &&
+      commitBuffer.length     == expectation.commitNumber &&
+      requestDeliveryOpt.isDefined == expectation.isRequestDelivery
+    ) {
+      observerRef ! RoundCollectorReady
+    }
   }
 
 }

@@ -1,15 +1,15 @@
 package com.github.pheymann.scala.bft.util
 
-import akka.actor.{Actor, ActorLogging}
+import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.PrePrepare
 import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
-import com.github.pheymann.scala.bft.util.CollectorStateObserver.CheckState
+import com.github.pheymann.scala.bft.util.CollectorStateObserver.LogCollectorReady
 
 
-class StorageMessageCollectorActor  extends Actor
-                                    with    ActorLogging
-                                    with    ActorLoggingUtil {
+class StorageMessageCollectorActor(observerRef: ActorRef) extends Actor
+                                                          with    ActorLogging
+                                                          with    ActorLoggingUtil {
 
   import StorageMessageCollectorActor._
 
@@ -26,28 +26,40 @@ class StorageMessageCollectorActor  extends Actor
       expectation = expect
       debug(s"expectation: $expect")
 
-    case message: Start => startOpt = Some(message)
-    case message: AddPrePrepare => addPrePrepareOpt = Some(message)
-    case message: AddPrepare    => addPrepareOpt = Some(message)
-    case message: AddCommit => addCommitOpt = Some(message)
-    case message: Finish    => finishOpt = Some(message)
+    case message: Start =>
+      startOpt = Some(message)
+      sendStateIfReady()
+    case message: AddPrePrepare =>
+      addPrePrepareOpt = Some(message)
+      sendStateIfReady()
+    case message: AddPrepare =>
+      addPrepareOpt = Some(message)
+      sendStateIfReady()
+    case message: AddCommit =>
+      addCommitOpt = Some(message)
+      sendStateIfReady()
+    case message: Finish =>
+      finishOpt = Some(message)
+      sendStateIfReady()
+  }
 
-    case CheckState =>
-      debug("start: %s, pre-prepare: %s, prepare: %s, commit: %s, finish: %s".format(
-        startOpt.isDefined,
-        addPrePrepareOpt.isDefined,
-        addPrepareOpt.isDefined,
-        addCommitOpt.isDefined,
-        finishOpt.isDefined
-      ))
+  private def sendStateIfReady() {
+    debug("start: %s, pre-prepare: %s, prepare: %s, commit: %s, finish: %s".format(
+      startOpt.isDefined,
+      addPrePrepareOpt.isDefined,
+      addPrepareOpt.isDefined,
+      addCommitOpt.isDefined,
+      finishOpt.isDefined
+    ))
 
-      sender() ! {
-        startOpt.isDefined == expectation.isStart &&
-        addPrePrepareOpt.isDefined == expectation.isPrePrepare &&
-        addPrepareOpt.isDefined == expectation.isPrepare &&
-        addCommitOpt.isDefined  == expectation.isCommit &&
-        finishOpt.isDefined     == expectation.isFinish
-      }
+    if (
+      startOpt.isDefined == expectation.isStart &&
+      addPrePrepareOpt.isDefined == expectation.isPrePrepare &&
+      addPrepareOpt.isDefined == expectation.isPrepare &&
+      addCommitOpt.isDefined  == expectation.isCommit &&
+      finishOpt.isDefined     == expectation.isFinish
+    )
+      observerRef ! LogCollectorReady
   }
 
 }

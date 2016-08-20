@@ -1,29 +1,43 @@
 package com.github.pheymann.scala.bft.util
 
-import akka.actor.{ActorRef, ActorSystem}
-import akka.pattern.ask
-import akka.util.Timeout
+import akka.actor.{Actor, ActorLogging, ActorRef}
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
+class CollectorStateObserver(specSender: ActorRef)  extends Actor
+                                                    with    ActorLogging
+                                                    with    ActorLoggingUtil {
 
-class CollectorStateObserver(collectorRef: ActorRef)
-                            (implicit timeout: Timeout, system: ActorSystem) {
-
-  import system.dispatcher
   import CollectorStateObserver._
 
-  def checkCollector: Future[Boolean] = Future {
-    while (!Await.result(collectorRef ? CheckState, 1.second).asInstanceOf[Boolean]) {
-      Thread.sleep(500)
+  private var isRoundReady  = false
+  private var isLogReady    = false
+
+  override def receive = {
+    case RoundCollectorReady =>
+      isRoundReady = true
+
+      responseIfReady()
+
+    case LogCollectorReady =>
+      isLogReady = true
+
+      responseIfReady()
+
+  }
+
+  private def responseIfReady() {
+    if (isRoundReady && isLogReady) {
+      debug("all collectors are ready")
+      specSender ! CollectorsReady
     }
-    true
   }
 
 }
 
 object CollectorStateObserver {
 
-  case object CheckState
+  case object CollectorsReady
+
+  case object RoundCollectorReady
+  case object LogCollectorReady
 
 }

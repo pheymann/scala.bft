@@ -7,7 +7,7 @@ trait ConsensusRound extends ConsensusRoundActor {
   protected def expectedMessages: Int
   protected def executeMessage(message: ConsensusMessage): Unit
 
-  protected def isValidMessage(message: ConsensusMessage): Boolean = {
+  def isValidMessage(message: ConsensusMessage): Boolean = {
     /*
      * replica has to be in the same view
      */
@@ -42,6 +42,8 @@ trait ConsensusRound extends ConsensusRoundActor {
       if (!roundIsComplete && isValidMessage(message)) {
         if (messageCounter == expectedMessages) {
           infoQuery("consensus", "reached")
+          messageCounter += 1
+
           if (roundHasStarted)
             executeMessage(message)
           else

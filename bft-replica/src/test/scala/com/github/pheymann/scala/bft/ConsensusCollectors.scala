@@ -1,49 +1,30 @@
 package com.github.pheymann.scala.bft
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.util.Timeout
+import com.github.pheymann.scala.bft.util.CollectorStateObserver.{LogCollectorReady, RoundCollectorReady}
 import com.github.pheymann.scala.bft.util.RoundMessageCollectorActor.InitRoundCollector
 import com.github.pheymann.scala.bft.util.StorageMessageCollectorActor.InitStorageCollector
 import com.github.pheymann.scala.bft.util._
 
-import scala.concurrent.Future
-import scala.concurrent.duration._
+class ConsensusCollectors(specSender: ActorRef)
+                         (implicit system: ActorSystem) {
 
-class ConsensusCollectors(implicit system: ActorSystem) {
+  val observerRef = system.actorOf(Props(new CollectorStateObserver(specSender)))
 
-  val roundCollectorRef = system.actorOf(Props(new RoundMessageCollectorActor()))
-  val logCollectorRef   = system.actorOf(Props(new StorageMessageCollectorActor()))
-
-  val roundObserver = createObserver(roundCollectorRef)
-  val logObserver   = createObserver(logCollectorRef)
-
-  private def createObserver(collectorRef: ActorRef)
-                            (implicit system: ActorSystem): CollectorStateObserver = {
-    import ConsensusCollectors.timeout
-
-    new CollectorStateObserver(collectorRef)(timeout, system)
-  }
+  val roundCollectorRef = system.actorOf(Props(new RoundMessageCollectorActor(observerRef)))
+  val logCollectorRef   = system.actorOf(Props(new StorageMessageCollectorActor(observerRef)))
 
   def initCollectors(roundExpectation: RoundMessageExpectation, logExpectation: StorageMessageExpectation) {
     roundCollectorRef ! InitRoundCollector(roundExpectation)
     logCollectorRef   ! InitStorageCollector(logExpectation)
   }
 
-  // when returning the expectations are fulfilled in the collectors
-  def observedResult: Future[Boolean] = {
-    import system.dispatcher
-
-    for {
-      roundValid  <- roundObserver.checkCollector
-      logValid    <- logObserver.checkCollector
-    } yield roundValid && logValid
+  def setRoundCollectorReady() {
+    observerRef ! RoundCollectorReady
   }
 
-}
-
-object ConsensusCollectors {
-
-  private val timeoutDuration = 5.seconds
-  private implicit val timeout = Timeout(timeoutDuration)
+  def setLogCollectorReady() {
+    observerRef ! LogCollectorReady
+  }
 
 }
