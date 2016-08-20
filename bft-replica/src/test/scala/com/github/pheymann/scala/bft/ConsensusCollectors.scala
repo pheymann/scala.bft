@@ -6,7 +6,7 @@ import com.github.pheymann.scala.bft.util.RoundMessageCollectorActor.InitRoundCo
 import com.github.pheymann.scala.bft.util.StorageMessageCollectorActor.InitStorageCollector
 import com.github.pheymann.scala.bft.util._
 
-import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class ConsensusCollectors(implicit system: ActorSystem) {
@@ -30,15 +30,13 @@ class ConsensusCollectors(implicit system: ActorSystem) {
   }
 
   // when returning the expectations are fulfilled in the collectors
-  def observedResult(duration: Duration = ConsensusCollectors.timeoutDuration) = {
+  def observedResult: Future[Boolean] = {
     import system.dispatcher
 
-    val result = for {
+    for {
       roundValid  <- roundObserver.checkCollector
       logValid    <- logObserver.checkCollector
     } yield roundValid && logValid
-
-    Await.result(result, duration)
   }
 
 }

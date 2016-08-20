@@ -5,13 +5,14 @@ import akka.pattern.ask
 import com.github.pheymann.scala.bft.{BftReplicaConfig, BftReplicaSpec}
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{FinishedPrePrepare, JoinConsensus, StartConsensus}
 import com.github.pheymann.scala.bft.util.{ClientRequest, RoundMessageExpectation, StorageMessageExpectation}
+import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.Await
 
 class PrePrepareRoundSpec extends BftReplicaSpec {
 
   "The Pre-Prepare Round" should {
-    "start a consensus as leader by sending the request and related message to all replicas" in {
+    "start a consensus as leader by sending the request and related message to all replicas" in { implicit ee: ExecutionEnv =>
       val request     = new ClientRequest(Array[Byte](0))
       val specContext = new ConsensusSpecContext(request)
 
@@ -27,10 +28,10 @@ class PrePrepareRoundSpec extends BftReplicaSpec {
       val prePrepareRound = system.actorOf(Props(new PrePrepareRound()))
 
       Await.result(prePrepareRound ? StartConsensus, testDuration) === FinishedPrePrepare
-      specContext.collectors.observedResult() should beTrue
+      specContext.collectors.observedResult should beTrue.await(0, testDuration)
     }
 
-    "or join a already started consensus as follower" in {
+    "or join a already started consensus as follower" in { implicit ee: ExecutionEnv =>
       val request     = new ClientRequest(Array[Byte](1))
       val specContext = new ConsensusSpecContext(request)
 
@@ -46,7 +47,7 @@ class PrePrepareRoundSpec extends BftReplicaSpec {
       val prePrepareRound = system.actorOf(Props(new PrePrepareRound()))
 
       Await.result(prePrepareRound ? JoinConsensus, testDuration) === FinishedPrePrepare
-      specContext.collectors.observedResult() should beTrue
+      specContext.collectors.observedResult should beTrue.await(0, testDuration)
     }
 
   }
