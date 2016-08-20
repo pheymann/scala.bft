@@ -7,3 +7,11 @@ case class StorageMessageExpectation(
                                       isCommit: Boolean = false,
                                       isFinish: Boolean = false
                                     )
+
+object StorageMessageExpectation {
+
+  def forValidConsensus: StorageMessageExpectation = {
+    StorageMessageExpectation(true, true, true, true, true)
+  }
+
+}

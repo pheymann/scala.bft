@@ -7,3 +7,12 @@ case class RoundMessageExpectation(
 
                                     isRequestDelivery: Boolean = false
                                   )
+
+object RoundMessageExpectation {
+
+  def forValidConsensus: RoundMessageExpectation = {
+    RoundMessageExpectation(1, 1, 1, true)
+  }
+
+}
+

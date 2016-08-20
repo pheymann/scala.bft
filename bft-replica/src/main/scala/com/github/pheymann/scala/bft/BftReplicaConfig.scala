@@ -16,7 +16,7 @@ object BftReplicaConfig {
 
   import scala.concurrent.duration._
 
-  val timeoutDuration = FiniteDuration(config.getDuration("consensus-timeout").getNano, TimeUnit.NANOSECONDS)
+  val timeoutDuration = FiniteDuration(config.getLong("consensus-timeout"), TimeUnit.MICROSECONDS)
   implicit val consensusTimeout = Timeout(timeoutDuration)
 
 }

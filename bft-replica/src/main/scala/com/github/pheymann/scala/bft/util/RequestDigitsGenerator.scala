@@ -4,7 +4,7 @@ object RequestDigitsGenerator {
 
   def generateDigits(request: ClientRequest): Array[Byte] = {
     //TODO implement generate digits
-    Array.empty
+    request.body
   }
 
 }

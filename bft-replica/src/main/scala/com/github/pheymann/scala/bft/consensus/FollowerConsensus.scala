@@ -1,23 +1,24 @@
 package com.github.pheymann.scala.bft.consensus
 
+import akka.actor.ActorSystem
 import akka.pattern.ask
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, PrePrepare, RequestDelivery}
 import com.github.pheymann.scala.bft.replica.ReplicaContext
 import com.github.pheymann.scala.bft.util.ClientRequest
 
 case class FollowerConsensus(request: ClientRequest)
-                            (implicit val replicaContext: ReplicaContext) extends ConsensusInstance {
+                            (implicit val system: ActorSystem, val replicaContext: ReplicaContext) extends ConsensusInstance(request) {
 
   import com.github.pheymann.scala.bft.BftReplicaConfig.consensusTimeout
 
-  override def runConsensus = prePrepareRound ? JoinConsensus
+  override def start() = instanceRef ? JoinConsensus
 
 }
 
 object FollowerConsensus {
 
   def createIfValid(message: PrePrepare, requestDelivery: RequestDelivery)
-                   (implicit replicaContext: ReplicaContext): Option[FollowerConsensus] = {
+                   (implicit system: ActorSystem, replicaContext: ReplicaContext): Option[FollowerConsensus] = {
     if (
       message.sequenceNumber == requestDelivery.sequenceNumber &&
       message.view == requestDelivery.view &&
