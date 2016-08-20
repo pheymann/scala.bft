@@ -24,19 +24,16 @@ abstract class ConsensusInstance(request: ClientRequest)
     RequestDigitsGenerator.generateDigits(request)
   )
 
-  class ConsensusActor  extends Actor
-                        with    ActorLogging
-                        with    ActorLoggingUtil {
+  class ConsensusInstanceActor  extends Actor
+                                with    ActorLogging
+                                with    ActorLoggingUtil {
 
     protected val prePrepareRound = createRound(Props(new PrePrepareRound()), "pre-prepare")
     protected val prepareRound    = createRound(Props(new PrepareRound()), "prepare")
     protected val commitRound     = createRound(Props(new CommitRound()), "commit")
 
     private def createRound(round: Props, name: String): ActorRef = {
-      context.system.actorOf(
-        round,
-        s"$name-${consensusContext.requestDigits.mkString("")}-${consensusContext.sequenceNumber}"
-      )
+      context.system.actorOf(round, s"$name-${consensusContext.toLog}")
     }
 
     private var _sender: ActorRef = null
@@ -64,7 +61,7 @@ abstract class ConsensusInstance(request: ClientRequest)
 
   }
 
-  val instanceRef = system.actorOf(Props(new ConsensusActor()))
+  val instanceRef = system.actorOf(Props(new ConsensusInstanceActor()))
 
   def start(): Future[Any]
 

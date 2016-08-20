@@ -7,4 +7,8 @@ case class ConsensusContext(
                             view:           Long,
                             request:        ClientRequest,
                             requestDigits:  Array[Byte]
-                           )
+                           ) {
+
+  val toLog = s"$sequenceNumber-$view-${requestDigits.mkString("")}"
+
+}
