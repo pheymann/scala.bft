@@ -2,7 +2,7 @@ package com.github.pheymann.scala.bft.consensus
 
 import com.github.pheymann.scala.bft.{BftReplicaSpec, WithActorSystem}
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{PrePrepare, RequestDelivery}
-import com.github.pheymann.scala.bft.util.ClientRequest
+import com.github.pheymann.scala.bft.util.{ClientRequest, RoundMessageExpectation, StorageMessageExpectation}
 
 class FollowerConsensusSpec extends BftReplicaSpec {
 
@@ -13,6 +13,8 @@ class FollowerConsensusSpec extends BftReplicaSpec {
       val message     = PrePrepare(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
       import specContext.replicaContext
+
+      specContext.collectors.initCollectors(RoundMessageExpectation.forValidConsensus, StorageMessageExpectation.forValidConsensus)
 
       FollowerConsensus.createIfValid(
         message,
@@ -29,7 +31,7 @@ class FollowerConsensusSpec extends BftReplicaSpec {
         RequestDelivery(request, specContext.sequenceNumber, specContext.view + 1)
       ) === None
 
-      val specContextInvalid = new ConsensusSpecContext(self,   request, logHasAcceptedOrUnknown = false)
+      val specContextInvalid = new ConsensusSpecContext(self, request, logHasAcceptedOrUnknown = false)
 
       FollowerConsensus.createIfValid(
         message,
