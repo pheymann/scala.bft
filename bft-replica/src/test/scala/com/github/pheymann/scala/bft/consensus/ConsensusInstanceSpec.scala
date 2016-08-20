@@ -72,7 +72,7 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
       }
 
       for (index <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas))
-        consensus.instanceRef ! Prepare(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
+        consensus.instanceRef ! Prepare(0L, specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
       Await.result(resultFut, 10.seconds) should beFalse
     }
@@ -80,10 +80,10 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
   def sendMessages(instance: ConsensusInstance, specContext: ConsensusSpecContext) {
     for (index <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas))
-      instance.instanceRef ! Prepare(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
+      instance.instanceRef ! Prepare(0L, specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
     for (index <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas + 1))
-      instance.instanceRef ! Commit(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
+      instance.instanceRef ! Commit(0L, specContext.sequenceNumber, specContext.view, specContext.requestDigits)
   }
 
   def isConsensus(instance: ConsensusInstance): Boolean = {

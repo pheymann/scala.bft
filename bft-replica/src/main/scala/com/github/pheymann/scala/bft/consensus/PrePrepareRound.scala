@@ -14,6 +14,7 @@ class PrePrepareRound(
   protected val round = roundName
 
   protected val message = PrePrepare(
+    replicas.self.id,
     consensusContext.sequenceNumber,
     consensusContext.view,
     consensusContext.requestDigits
@@ -43,7 +44,12 @@ object PrePrepareRound {
   case object JoinConsensus
   case object FinishedPrePrepare
 
-  case class PrePrepare(sequenceNumber: Long, view: Long, requestDigits: Array[Byte]) extends ConsensusMessage
+  case class PrePrepare(
+                         replicaId:       Long,
+                         sequenceNumber:  Long,
+                         view:            Long,
+                         requestDigits:   Array[Byte]
+                       ) extends ConsensusMessage
   case class RequestDelivery(request: ClientRequest, sequenceNumber: Long, view: Long)
 
 }

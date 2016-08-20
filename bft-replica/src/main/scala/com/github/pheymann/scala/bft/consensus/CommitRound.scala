@@ -17,6 +17,7 @@ class CommitRound(
   protected final val expectedMessages = 2 * BftReplicaConfig.expectedFaultyReplicas + 1
 
   protected val message = Commit(
+    replicas.self.id,
     consensusContext.sequenceNumber,
     consensusContext.view,
     consensusContext.requestDigits
@@ -36,6 +37,11 @@ object CommitRound {
   case object StartCommit extends StartRound
   case object FinishedCommit
 
-  case class Commit(sequenceNumber: Long, view: Long, requestDigits: Array[Byte]) extends ConsensusMessage
+  case class Commit(
+                     replicaId:       Long,
+                     sequenceNumber:  Long,
+                     view:            Long,
+                     requestDigits:   Array[Byte]
+                   ) extends ConsensusMessage
 
 }

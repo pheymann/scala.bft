@@ -46,7 +46,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
         prepareRound ! StartPrepare
 
         for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas))
-          prepareRound ! Prepare(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
+          prepareRound ! Prepare(0L, specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
         expectMsgAllOf(FinishedPrepare, CollectorsReady)
       }
@@ -66,7 +66,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
         commitRound ! StartCommit
 
         for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas + 1))
-          commitRound ! Commit(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
+          commitRound ! Commit(0L, specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
         expectMsgAllOf(FinishedCommit, CollectorsReady)
       }
@@ -86,7 +86,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
         commitRound ! StartCommit
 
         for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas + 1 + 1))
-          commitRound ! Commit(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
+          commitRound ! Commit(0L, specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
         expectMsgAllOf(FinishedCommit, CollectorsReady)
       }
@@ -104,7 +104,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
       within(testDuration) {
         for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas + 1))
-          commitRound ! Commit(specContext.sequenceNumber, specContext.view, specContext.requestDigits)
+          commitRound ! Commit(0L, specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
         commitRound ! StartCommit
 

@@ -17,6 +17,7 @@ class PrepareRound(
   protected final val expectedMessages = 2 * BftReplicaConfig.expectedFaultyReplicas
 
   protected val message = Prepare(
+    replicas.self.id,
     consensusContext.sequenceNumber,
     consensusContext.view,
     consensusContext.requestDigits
@@ -35,6 +36,11 @@ object PrepareRound {
   case object StartPrepare extends StartRound
   case object FinishedPrepare
 
-  case class Prepare(sequenceNumber: Long, view: Long, requestDigits: Array[Byte]) extends ConsensusMessage
+  case class Prepare(
+                      replicaId:      Long,
+                      sequenceNumber: Long,
+                      view:           Long,
+                      requestDigits:  Array[Byte]
+                    ) extends ConsensusMessage
 
 }
