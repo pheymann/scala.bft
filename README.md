@@ -8,7 +8,7 @@ A short introduction and description of the general idea of how to enable multip
 Check out the current feature branches and issues to see what is currenlty in development and what comes next.
 
 ## Project
- - *bft*: implements the basic **B**yzantine **F**ault **T**olerance protocol
+ - *bft-replica*: implements the basic **B**yzantine **F**ault **T**olerance protocol for the replicas
 
 ## Guideline
 If you want to participate and change stuff on this project you have to know the following guidelines:
