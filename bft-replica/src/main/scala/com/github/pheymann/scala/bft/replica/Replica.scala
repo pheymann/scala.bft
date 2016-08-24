@@ -5,4 +5,8 @@ class Replica(
 
               var view: Long,
               var sequenceNumber: Long
-             )
+             ) {
+
+  def this(data: ReplicaData) = this(data.id, 0L, 0L)
+
+}

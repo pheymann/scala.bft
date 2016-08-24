@@ -11,4 +11,8 @@ trait LoggingUtil {
       log.info(msg)
   }
 
+  def error(cause: Throwable, msg: => String) {
+    log.error(msg, cause)
+  }
+
 }

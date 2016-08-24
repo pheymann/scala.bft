@@ -7,6 +7,8 @@ import com.github.pheymann.scala.bft.util.RoundMessageCollectorActor.RequestDeli
 
 class ReplicasMock(val self: Replica, roundCollectorRef: ActorRef) extends Replicas {
 
+  private[replica] val remoteReplicaRefs = Seq.empty
+
   def sendMessage(message: ConsensusMessage) {
     roundCollectorRef ! message
   }

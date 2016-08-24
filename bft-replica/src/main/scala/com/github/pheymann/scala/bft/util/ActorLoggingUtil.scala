@@ -1,8 +1,8 @@
 package com.github.pheymann.scala.bft.util
 
-import akka.actor.ActorLogging
+import akka.actor.{Actor, ActorLogging}
 
-trait ActorLoggingUtil { this: ActorLogging =>
+trait ActorLoggingUtil extends ActorLogging { this: Actor =>
 
   def info(msg: => String) {
     if (log.isInfoEnabled)

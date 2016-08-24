@@ -11,9 +11,10 @@ trait Versions {
 
 trait Libraries extends Versions {
 
-  val akka      = "com.typesafe.akka" %% "akka-actor"   % akkaVersion
-  val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j"   % akkaVersion
-  val akkaTest  = "com.typesafe.akka" %% "akka-testkit" % akkaVersion
+  val akka        = "com.typesafe.akka" %% "akka-actor"   % akkaVersion
+  val akkaSlf4j   = "com.typesafe.akka" %% "akka-slf4j"   % akkaVersion
+  val akkaRemote  = "com.typesafe.akka" %% "akka-remote"  % akkaVersion
+  val akkaTest    = "com.typesafe.akka" %% "akka-testkit" % akkaVersion
 
   val specs2  = "org.specs2"      %% "specs2-core"    % specs2Verison
   val logback = "ch.qos.logback"  % "logback-classic" % logbackVersion
@@ -23,8 +24,9 @@ trait Libraries extends Versions {
 object Dependencies extends Libraries {
 
   val bftReplica = Seq(
-    akka      % Compile,
-    akkaSlf4j % Compile,
+    akka        % Compile,
+    akkaSlf4j   % Compile,
+    akkaRemote  % Compile,
 
     akkaTest  % Test,
     specs2    % Test,
