@@ -6,7 +6,8 @@ import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
 import com.github.pheymann.scala.bft.consensus.ConsensusInstance.FinishedConsensus
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, StartConsensus}
 import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
-import com.github.pheymann.scala.bft.util.CollectorStateObserver.CollectorsReady
+import com.github.pheymann.scala.bft.replica.ReplicasMock.{CalledSendMessage, CalledSendRequest}
+import com.github.pheymann.scala.bft.storage.LogStorageMock._
 import com.github.pheymann.scala.bft.{BftReplicaConfig, BftReplicaSpec, WithActorSystem}
 import com.github.pheymann.scala.bft.util._
 
@@ -17,6 +18,8 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
   sequential
 
+  val expectMsgConsensus = Seq(CalledSendMessage, CalledSendRequest, CalledStart, CalledAddPrePrepare, CalledAddPrepare, CalledAddCommit, CalledFinish)
+
   """The Consensus Instance and its two implementations for Leaders and Followers is the atomic unit
     |of the protocol handling the three consensus protocol and the internal state. It
   """.stripMargin should {
@@ -26,15 +29,15 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
       import specContext.replicaContext
 
-      specContext.collectors.initCollectors(RoundMessageExpectation.forValidConsensus, StorageMessageExpectation.forValidConsensus)
-
       val consensus = new LeaderConsensus(request)
 
-      within(10.seconds) {
+      within(testDuration * 2) {
         consensus.instanceRef ! StartConsensus
 
         sendMessages(consensus, specContext)
-        expectMsgAllOf(FinishedConsensus, CollectorsReady)
+
+        expectMsgAllOf(expectMsgConsensus: _*)
+        expectMsg(FinishedConsensus)
       }
     }
 
@@ -44,15 +47,13 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
       import specContext.replicaContext
 
-      specContext.collectors.initCollectors(RoundMessageExpectation(0, 1, 1), StorageMessageExpectation.forValidConsensus)
-
       val consensus = new FollowerConsensus(request)
 
       within(10.seconds) {
         consensus.instanceRef ! JoinConsensus
 
-        sendMessages(consensus, specContext)
-        expectMsgAllOf(FinishedConsensus, CollectorsReady)
+        expectMsgAllOf(expectMsgConsensus.filter(_ == CalledSendRequest): _*)
+        expectMsg(FinishedConsensus)
       }
     }
 
@@ -62,8 +63,6 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
       import specContext.replicaContext
       import system.dispatcher
-
-      specContext.collectors.initCollectors(RoundMessageExpectation.forValidConsensus, StorageMessageExpectation.forValidConsensus)
 
       val consensus = new LeaderConsensus(request)
 

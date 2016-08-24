@@ -3,17 +3,25 @@ package com.github.pheymann.scala.bft.replica
 import akka.actor.ActorRef
 import com.github.pheymann.scala.bft.consensus.ConsensusMessage
 import com.github.pheymann.scala.bft.util.ClientRequest
-import com.github.pheymann.scala.bft.util.RoundMessageCollectorActor.RequestDeliveryMock
 
-class ReplicasMock(val self: Replica, roundCollectorRef: ActorRef) extends Replicas {
+class ReplicasMock(specRef: ActorRef, val self: Replica) extends Replicas {
+
+  import ReplicasMock._
 
   private[replica] val remoteReplicaRefs = Seq.empty
 
   def sendMessage(message: ConsensusMessage) {
-    roundCollectorRef ! message
+    specRef ! CalledSendMessage
   }
   def sendRequest(message: ConsensusMessage, request: ClientRequest) {
-    roundCollectorRef ! RequestDeliveryMock(message, request)
+    specRef ! CalledSendRequest
   }
+
+}
+
+object ReplicasMock {
+
+  case object CalledSendMessage
+  case object CalledSendRequest
 
 }

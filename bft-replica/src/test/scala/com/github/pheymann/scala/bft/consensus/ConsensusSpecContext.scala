@@ -6,8 +6,8 @@ import com.github.pheymann.scala.bft.storage.LogStorageMock
 import com.github.pheymann.scala.bft.util.{ClientRequest, RequestDigitsGenerator}
 
 class ConsensusSpecContext(
-                            val specSender: ActorRef,
-                            val request:    ClientRequest,
+                            val specRef: ActorRef,
+                            val request: ClientRequest,
 
                             val sequenceNumber: Long = 0L,
                             val view:           Long = 0L,
@@ -26,16 +26,8 @@ class ConsensusSpecContext(
     requestDigits
   )
 
-  val collectors = new ConsensusCollectors(specSender)
-
-  val logStorageMock = new LogStorageMock {
-    val _logCollectorRef = collectors.logCollectorRef
-
-    override def isWithinWatermarks(message: ConsensusMessage)    = logIsWithWatermarks
-    override def hasAcceptedOrUnknown(message: ConsensusMessage)  = logHasAcceptedOrUnknown
-  }
-
-  val replicasMock = new ReplicasMock(new Replica(0L, view, sequenceNumber), collectors.roundCollectorRef)
+  val logStorageMock  = new LogStorageMock(specRef, logIsWithWatermarks, logHasAcceptedOrUnknown)
+  val replicasMock    = new ReplicasMock(specRef, new Replica(0L, view, sequenceNumber))
 
   implicit val replicaContext = new ReplicaContextMock(replicasMock, logStorageMock)
 
