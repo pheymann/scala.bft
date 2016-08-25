@@ -3,7 +3,7 @@ package com.github.pheymann.scala.bft.replica
 import akka.actor.{ActorRef, ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider, Props}
 import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.consensus.ConsensusMessage
-import com.github.pheymann.scala.bft.util.ClientRequest
+import com.github.pheymann.scala.bft.util.{ClientRequest, LoggingUtil}
 
 trait Replicas extends Extension {
 
@@ -24,7 +24,7 @@ object Replicas extends ExtensionId[Replicas] with ExtensionIdProvider {
 
 }
 
-class ReplicasStatic(implicit system: ActorSystem) extends Replicas {
+class ReplicasStatic(implicit system: ActorSystem) extends Replicas with LoggingUtil {
 
   private val selfOpt = StaticReplicaDiscovery.replicaData.find(_.id == BftReplicaConfig.selfId)
 
@@ -33,10 +33,12 @@ class ReplicasStatic(implicit system: ActorSystem) extends Replicas {
   val self = new Replica(selfOpt.get)
 
   private[replica] val remoteReplicaRefs = StaticReplicaDiscovery.replicaData
-                                            .filter(_.id == BftReplicaConfig.selfId)
+                                            .filterNot(_.id == BftReplicaConfig.selfId)
                                             .map { data =>
                                               system.actorOf(Props(new RemoteReplicaActor(data)))
                                             }
+
+  info(s"remote replicas:\n    ${remoteReplicaRefs.mkString("\n    ")}")
 
   override def sendMessage(message: ConsensusMessage) {
     //TODO implement send message
