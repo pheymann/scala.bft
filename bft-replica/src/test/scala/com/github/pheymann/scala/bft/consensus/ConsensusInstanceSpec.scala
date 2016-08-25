@@ -6,7 +6,8 @@ import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
 import com.github.pheymann.scala.bft.consensus.ConsensusInstance.FinishedConsensus
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, StartConsensus}
 import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
-import com.github.pheymann.scala.bft.util.CollectorStateObserver.CollectorsReady
+import com.github.pheymann.scala.bft.replica.ReplicasMock.{CalledSendMessage, CalledSendRequest}
+import com.github.pheymann.scala.bft.storage.LogStorageMock._
 import com.github.pheymann.scala.bft.{BftReplicaConfig, BftReplicaSpec, WithActorSystem}
 import com.github.pheymann.scala.bft.util._
 
@@ -26,15 +27,23 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
       import specContext.replicaContext
 
-      specContext.collectors.initCollectors(RoundMessageExpectation.forValidConsensus, StorageMessageExpectation.forValidConsensus)
-
       val consensus = new LeaderConsensus(request)
 
-      within(10.seconds) {
+      within(testDuration * 2) {
         consensus.instanceRef ! StartConsensus
 
         sendMessages(consensus, specContext)
-        expectMsgAllOf(FinishedConsensus, CollectorsReady)
+
+        expectMsg(CalledStart)
+        expectMsg(CalledAddPrePrepare)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledSendRequest)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledAddPrepare)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledAddCommit)
+        expectMsg(CalledFinish)
+        expectMsg(FinishedConsensus)
       }
     }
 
@@ -44,15 +53,21 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
       import specContext.replicaContext
 
-      specContext.collectors.initCollectors(RoundMessageExpectation(0, 1, 1), StorageMessageExpectation.forValidConsensus)
-
       val consensus = new FollowerConsensus(request)
 
       within(10.seconds) {
         consensus.instanceRef ! JoinConsensus
 
         sendMessages(consensus, specContext)
-        expectMsgAllOf(FinishedConsensus, CollectorsReady)
+
+        expectMsg(CalledStart)
+        expectMsg(CalledAddPrePrepare)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledAddPrepare)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledAddCommit)
+        expectMsg(CalledFinish)
+        expectMsg(FinishedConsensus)
       }
     }
 
@@ -62,8 +77,6 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
       import specContext.replicaContext
       import system.dispatcher
-
-      specContext.collectors.initCollectors(RoundMessageExpectation.forValidConsensus, StorageMessageExpectation.forValidConsensus)
 
       val consensus = new LeaderConsensus(request)
 

@@ -3,8 +3,9 @@ package com.github.pheymann.scala.bft.consensus
 import akka.actor.Props
 import com.github.pheymann.scala.bft.{BftReplicaSpec, WithActorSystem}
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{FinishedPrePrepare, JoinConsensus, StartConsensus}
-import com.github.pheymann.scala.bft.util.CollectorStateObserver.CollectorsReady
-import com.github.pheymann.scala.bft.util.{ClientRequest, RoundMessageExpectation, StorageMessageExpectation}
+import com.github.pheymann.scala.bft.replica.ReplicasMock.{CalledSendMessage, CalledSendRequest}
+import com.github.pheymann.scala.bft.storage.LogStorageMock.{CalledAddPrePrepare, CalledStart}
+import com.github.pheymann.scala.bft.util.ClientRequest
 
 class PrePrepareRoundSpec extends BftReplicaSpec {
   
@@ -17,17 +18,16 @@ class PrePrepareRoundSpec extends BftReplicaSpec {
 
       import specContext.{consensusContext, replicaContext}
 
-      specContext.collectors.initCollectors(
-        RoundMessageExpectation(prePrepareNumber = 1, isRequestDelivery = true),
-        StorageMessageExpectation(isStart = true, isPrePrepare = true)
-      )
-
       val prePrepareRound = system.actorOf(Props(new PrePrepareRound()))
 
       within(testDuration) {
         prePrepareRound ! StartConsensus
 
-        expectMsgAllOf(FinishedPrePrepare, CollectorsReady)
+        expectMsg(CalledStart)
+        expectMsg(CalledAddPrePrepare)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledSendRequest)
+        expectMsg(FinishedPrePrepare)
       }
     }
 
@@ -37,18 +37,14 @@ class PrePrepareRoundSpec extends BftReplicaSpec {
 
       import specContext.{consensusContext, replicaContext}
 
-      specContext.collectors.initCollectors(
-        RoundMessageExpectation(),
-        StorageMessageExpectation(isStart = true, isPrePrepare = true)
-      )
-
       val prePrepareRound = system.actorOf(Props(new PrePrepareRound()))
 
       within(testDuration) {
-        specContext.collectors.setRoundCollectorReady()
         prePrepareRound ! JoinConsensus
 
-        expectMsgAllOf(FinishedPrePrepare, CollectorsReady)
+        expectMsg(CalledStart)
+        expectMsg(CalledAddPrePrepare)
+        expectMsg(FinishedPrePrepare)
       }
     }
 

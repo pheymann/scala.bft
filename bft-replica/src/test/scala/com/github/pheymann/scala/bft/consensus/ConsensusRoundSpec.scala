@@ -4,8 +4,9 @@ import akka.actor.Props
 import com.github.pheymann.scala.bft.{BftReplicaConfig, BftReplicaSpec, WithActorSystem}
 import com.github.pheymann.scala.bft.consensus.CommitRound.{Commit, FinishedCommit, StartCommit}
 import com.github.pheymann.scala.bft.consensus.PrepareRound.{FinishedPrepare, Prepare, StartPrepare}
-import com.github.pheymann.scala.bft.util.CollectorStateObserver.CollectorsReady
-import com.github.pheymann.scala.bft.util.{ClientRequest, RoundMessageExpectation, StorageMessageExpectation}
+import com.github.pheymann.scala.bft.replica.ReplicasMock.CalledSendMessage
+import com.github.pheymann.scala.bft.storage.LogStorageMock.{CalledAddCommit, CalledAddPrepare, CalledFinish}
+import com.github.pheymann.scala.bft.util.ClientRequest
 
 class ConsensusRoundSpec extends BftReplicaSpec {
 
@@ -20,15 +21,12 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
       import specContext.{consensusContext, replicaContext}
 
-      specContext.collectors.initCollectors(RoundMessageExpectation(commitNumber = 1), StorageMessageExpectation())
-
       val commitRound = system.actorOf(Props(new CommitRound()))
 
       within(testDuration) {
-        specContext.collectors.setLogCollectorReady()
         commitRound ! StartCommit
 
-        expectMsg(CollectorsReady)
+        expectMsg(CalledSendMessage)
       }
     }
 
@@ -38,8 +36,6 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
       import specContext.{consensusContext, replicaContext}
 
-      specContext.collectors.initCollectors(RoundMessageExpectation(prepareNumber = 1), StorageMessageExpectation(isPrepare = true))
-
       val prepareRound = system.actorOf(Props(new PrepareRound()))
 
       within(testDuration) {
@@ -48,7 +44,9 @@ class ConsensusRoundSpec extends BftReplicaSpec {
         for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas))
           prepareRound ! Prepare(0L, specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
-        expectMsgAllOf(FinishedPrepare, CollectorsReady)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledAddPrepare)
+        expectMsg(FinishedPrepare)
       }
     }
 
@@ -58,8 +56,6 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
       import specContext.{consensusContext, replicaContext}
 
-      specContext.collectors.initCollectors(RoundMessageExpectation(commitNumber = 1), StorageMessageExpectation(isCommit = true, isFinish = true))
-
       val commitRound = system.actorOf(Props(new CommitRound()))
 
       within(testDuration) {
@@ -68,17 +64,18 @@ class ConsensusRoundSpec extends BftReplicaSpec {
         for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas + 1))
           commitRound ! Commit(0L, specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
-        expectMsgAllOf(FinishedCommit, CollectorsReady)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledAddCommit)
+        expectMsg(CalledFinish)
+        expectMsg(FinishedCommit)
       }
     }
 
     "(Prepare|Commit Round) and just ignore additional messages" in new WithActorSystem {
-      val request = new ClientRequest(Array[Byte](3))
+      val request     = new ClientRequest(Array[Byte](3))
       val specContext = new ConsensusSpecContext(self, request)
 
       import specContext.{consensusContext, replicaContext}
-
-      specContext.collectors.initCollectors(RoundMessageExpectation(commitNumber = 1), StorageMessageExpectation(isCommit = true, isFinish = true))
 
       val commitRound = system.actorOf(Props(new CommitRound()))
 
@@ -88,17 +85,18 @@ class ConsensusRoundSpec extends BftReplicaSpec {
         for (counter <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas + 1 + 1))
           commitRound ! Commit(0L, specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
-        expectMsgAllOf(FinishedCommit, CollectorsReady)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledAddCommit)
+        expectMsg(CalledFinish)
+        expectMsg(FinishedCommit)
       }
     }
 
     "(Prepare|Commit Round) finish directly on start if the consensus was already found" in new WithActorSystem {
-      val request = new ClientRequest(Array[Byte](4))
+      val request     = new ClientRequest(Array[Byte](4))
       val specContext = new ConsensusSpecContext(self, request)
 
       import specContext.{consensusContext, replicaContext}
-
-      specContext.collectors.initCollectors(RoundMessageExpectation(commitNumber = 1), StorageMessageExpectation(isCommit = true, isFinish = true))
 
       val commitRound = system.actorOf(Props(new CommitRound()))
 
@@ -108,7 +106,10 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
         commitRound ! StartCommit
 
-        expectMsgAllOf(FinishedCommit, CollectorsReady)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledAddCommit)
+        expectMsg(CalledFinish)
+        expectMsg(FinishedCommit)
       }
     }
   }

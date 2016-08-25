@@ -5,7 +5,6 @@ import com.github.pheymann.scala.bft.replica.ReplicaContext
 import com.github.pheymann.scala.bft.util.ConsensusLoggingUtil
 
 trait ConsensusRoundActor extends Actor
-                          with    ActorLogging
                           with    ConsensusLoggingUtil {
 
   implicit def consensusContext:  ConsensusContext
