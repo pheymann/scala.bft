@@ -18,8 +18,6 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
   sequential
 
-  val expectMsgConsensus = Seq(CalledSendMessage, CalledSendRequest, CalledStart, CalledAddPrePrepare, CalledAddPrepare, CalledAddCommit, CalledFinish)
-
   """The Consensus Instance and its two implementations for Leaders and Followers is the atomic unit
     |of the protocol handling the three consensus protocol and the internal state. It
   """.stripMargin should {
@@ -36,7 +34,15 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
 
         sendMessages(consensus, specContext)
 
-        expectMsgAllOf(expectMsgConsensus: _*)
+        expectMsg(CalledStart)
+        expectMsg(CalledAddPrePrepare)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledSendRequest)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledAddPrepare)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledAddCommit)
+        expectMsg(CalledFinish)
         expectMsg(FinishedConsensus)
       }
     }
@@ -52,7 +58,15 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
       within(10.seconds) {
         consensus.instanceRef ! JoinConsensus
 
-        expectMsgAllOf(expectMsgConsensus.filter(_ == CalledSendRequest): _*)
+        sendMessages(consensus, specContext)
+
+        expectMsg(CalledStart)
+        expectMsg(CalledAddPrePrepare)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledAddPrepare)
+        expectMsg(CalledSendMessage)
+        expectMsg(CalledAddCommit)
+        expectMsg(CalledFinish)
         expectMsg(FinishedConsensus)
       }
     }
