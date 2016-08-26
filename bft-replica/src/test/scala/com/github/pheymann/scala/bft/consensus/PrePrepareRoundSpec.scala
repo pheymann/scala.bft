@@ -3,9 +3,9 @@ package com.github.pheymann.scala.bft.consensus
 import akka.actor.Props
 import com.github.pheymann.scala.bft.{BftReplicaSpec, WithActorSystem}
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{FinishedPrePrepare, JoinConsensus, StartConsensus}
+import com.github.pheymann.scala.bft.model.ClientRequest
 import com.github.pheymann.scala.bft.replica.ReplicasMock.{CalledSendMessage, CalledSendRequest}
 import com.github.pheymann.scala.bft.storage.LogStorageMock.{CalledAddPrePrepare, CalledStart}
-import com.github.pheymann.scala.bft.util.ClientRequest
 
 class PrePrepareRoundSpec extends BftReplicaSpec {
   

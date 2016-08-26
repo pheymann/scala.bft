@@ -6,10 +6,10 @@ import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
 import com.github.pheymann.scala.bft.consensus.ConsensusInstance.FinishedConsensus
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, StartConsensus}
 import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
+import com.github.pheymann.scala.bft.model.ClientRequest
 import com.github.pheymann.scala.bft.replica.ReplicasMock.{CalledSendMessage, CalledSendRequest}
 import com.github.pheymann.scala.bft.storage.LogStorageMock._
 import com.github.pheymann.scala.bft.{BftReplicaConfig, BftReplicaSpec, WithActorSystem}
-import com.github.pheymann.scala.bft.util._
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._

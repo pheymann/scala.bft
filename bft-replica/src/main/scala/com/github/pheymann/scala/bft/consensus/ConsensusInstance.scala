@@ -4,8 +4,9 @@ import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 import com.github.pheymann.scala.bft.consensus.CommitRound.{Commit, FinishedCommit, StartCommit}
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{FinishedPrePrepare, JoinConsensus, StartConsensus}
 import com.github.pheymann.scala.bft.consensus.PrepareRound.{FinishedPrepare, Prepare, StartPrepare}
+import com.github.pheymann.scala.bft.model.ClientRequest
 import com.github.pheymann.scala.bft.replica.ReplicaContext
-import com.github.pheymann.scala.bft.util.{ActorLoggingUtil, ClientRequest, LoggingUtil, RequestDigitsGenerator}
+import com.github.pheymann.scala.bft.util.{ActorLoggingUtil, LoggingUtil, RequestDigitsGenerator}
 
 import scala.concurrent.Future
 

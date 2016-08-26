@@ -3,8 +3,9 @@ package com.github.pheymann.scala.bft.replica
 import akka.actor.{ActorRef, ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider, Props}
 import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.consensus.ConsensusMessage
+import com.github.pheymann.scala.bft.model.{ClientRequest, DataChunk, RequestDelivery}
 import com.github.pheymann.scala.bft.replica.Replicas.MissingReplicaSelfDataException
-import com.github.pheymann.scala.bft.util.{ClientRequest, DataChunk, LoggingUtil, RequestDelivery}
+import com.github.pheymann.scala.bft.util.LoggingUtil
 
 trait Replicas extends Extension {
 

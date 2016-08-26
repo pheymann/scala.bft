@@ -3,8 +3,8 @@ package com.github.pheymann.scala.bft.consensus
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, PrePrepare}
+import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
 import com.github.pheymann.scala.bft.replica.ReplicaContext
-import com.github.pheymann.scala.bft.util.{ClientRequest, RequestDelivery}
 
 case class FollowerConsensus(request: ClientRequest)
                             (implicit val system: ActorSystem, val replicaContext: ReplicaContext) extends ConsensusInstance(request) {

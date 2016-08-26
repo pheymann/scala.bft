@@ -1,4 +1,4 @@
-package com.github.pheymann.scala.bft.util
+package com.github.pheymann.scala.bft.model
 
 case class ClientRequest(
                           clientId:   Long,

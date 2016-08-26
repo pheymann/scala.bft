@@ -2,7 +2,7 @@ package com.github.pheymann.scala.bft.consensus
 
 import com.github.pheymann.scala.bft.{BftReplicaSpec, WithActorSystem}
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.PrePrepare
-import com.github.pheymann.scala.bft.util.{ClientRequest, RequestDelivery}
+import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
 
 class FollowerConsensusSpec extends BftReplicaSpec {
 

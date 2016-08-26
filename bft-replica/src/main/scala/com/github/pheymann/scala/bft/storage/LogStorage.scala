@@ -2,7 +2,7 @@ package com.github.pheymann.scala.bft.storage
 
 import akka.actor.{ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider}
 import com.github.pheymann.scala.bft.consensus.ConsensusMessage
-import com.github.pheymann.scala.bft.util.ClientRequest
+import com.github.pheymann.scala.bft.model.ClientRequest
 
 trait LogStorage extends Extension {
 
