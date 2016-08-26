@@ -22,7 +22,7 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
     |of the protocol handling the three consensus protocol and the internal state. It
   """.stripMargin should {
     "reach a consensus if all rounds have passed for leader replica" in new WithActorSystem {
-      val request     = new ClientRequest(Array[Byte](0))
+      val request     = new ClientRequest(0, 0, Array[Byte](0))
       val specContext = new ConsensusSpecContext(self, request, 1)
 
       import specContext.replicaContext
@@ -48,7 +48,7 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
     }
 
     "reach a consensus if all rounds have passed for follower replicas" in new WithActorSystem {
-      val request     = new ClientRequest(Array[Byte](1))
+      val request     = new ClientRequest(0, 0, Array[Byte](1))
       val specContext = new ConsensusSpecContext(self, request, 1)
 
       import specContext.replicaContext
@@ -72,7 +72,7 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
     }
 
     "not reach a consensus when not all round conditions are fulfilled" in new WithActorSystem {
-      val request     = new ClientRequest(Array[Byte](2))
+      val request     = new ClientRequest(0, 0, Array[Byte](2))
       val specContext = new ConsensusSpecContext(self, request, 1)
 
       import specContext.replicaContext

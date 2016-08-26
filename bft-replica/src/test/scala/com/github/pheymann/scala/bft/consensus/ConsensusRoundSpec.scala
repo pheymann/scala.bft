@@ -16,7 +16,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
     |
     |A consensus round""".stripMargin should {
     "(Prepare|Commit Round) distribute the current round message to all replicas on start" in new WithActorSystem {
-      val request     = new ClientRequest(Array[Byte](0))
+      val request     = new ClientRequest(0, 0, Array[Byte](0))
       val specContext = new ConsensusSpecContext(self, request)
 
       import specContext.{consensusContext, replicaContext}
@@ -31,7 +31,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
     }
 
     "(Prepare Round) reach consensus when 2f messages are received" in new WithActorSystem {
-      val request     = new ClientRequest(Array[Byte](1))
+      val request     = new ClientRequest(0, 0, Array[Byte](1))
       val specContext = new ConsensusSpecContext(self, request)
 
       import specContext.{consensusContext, replicaContext}
@@ -51,7 +51,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
     }
 
     "(Commit Round) reach consensus when 2f + 1 messages are received" in new WithActorSystem {
-      val request     = new ClientRequest(Array[Byte](2))
+      val request     = new ClientRequest(0, 0, Array[Byte](2))
       val specContext = new ConsensusSpecContext(self, request)
 
       import specContext.{consensusContext, replicaContext}
@@ -72,7 +72,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
     }
 
     "(Prepare|Commit Round) and just ignore additional messages" in new WithActorSystem {
-      val request     = new ClientRequest(Array[Byte](3))
+      val request     = new ClientRequest(0, 0, Array[Byte](3))
       val specContext = new ConsensusSpecContext(self, request)
 
       import specContext.{consensusContext, replicaContext}
@@ -93,7 +93,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
     }
 
     "(Prepare|Commit Round) finish directly on start if the consensus was already found" in new WithActorSystem {
-      val request     = new ClientRequest(Array[Byte](4))
+      val request     = new ClientRequest(0, 0, Array[Byte](4))
       val specContext = new ConsensusSpecContext(self, request)
 
       import specContext.{consensusContext, replicaContext}

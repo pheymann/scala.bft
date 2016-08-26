@@ -10,10 +10,11 @@ class ReplicasMock(specRef: ActorRef, val self: Replica) extends Replicas {
 
   private[replica] val remoteReplicaRefs = Seq.empty
 
-  def sendMessage(message: ConsensusMessage) {
+  override def sendMessage(message: ConsensusMessage) {
     specRef ! CalledSendMessage
   }
-  def sendRequest(message: ConsensusMessage, request: ClientRequest) {
+
+  override def sendRequest(message: ConsensusMessage, request: ClientRequest) {
     specRef ! CalledSendRequest
   }
 

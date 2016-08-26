@@ -9,9 +9,11 @@ object BftReplicaConfig {
 
   private val config = ConfigFactory.load().getConfig("bft")
 
-  private val bftConfig = config.getConfig("replica")
-
   val selfId = config.getLong("self.id")
+
+  val messageChunkSize = config.getInt("message.chunk-size")
+
+  private val bftConfig = config.getConfig("replica")
 
   val replicaHostFile = bftConfig.getString("hosts-file")
 

@@ -4,7 +4,7 @@ import akka.actor.{ActorRef, ActorSystem, ExtendedActorSystem, Extension, Extens
 import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.consensus.ConsensusMessage
 import com.github.pheymann.scala.bft.replica.Replicas.MissingReplicaSelfDataException
-import com.github.pheymann.scala.bft.util.{ClientRequest, LoggingUtil}
+import com.github.pheymann.scala.bft.util.{ClientRequest, DataChunk, LoggingUtil, RequestDelivery}
 
 trait Replicas extends Extension {
 
@@ -12,8 +12,21 @@ trait Replicas extends Extension {
 
   private[replica] def remoteReplicaRefs: Seq[ActorRef]
 
-  def sendMessage(message: ConsensusMessage): Unit
-  def sendRequest(message: ConsensusMessage, request: ClientRequest): Unit
+  def sendMessage(message: ConsensusMessage) {
+    for (remoteReplicaRef <- remoteReplicaRefs)
+      remoteReplicaRef ! message
+  }
+
+  def sendRequest(message: ConsensusMessage, request: ClientRequest) {
+    RequestDelivery
+      .marshall(RequestDelivery(message.sequenceNumber, message.view, request))
+      .grouped(BftReplicaConfig.messageChunkSize)
+      .zipWithIndex
+      .foreach { case (chunk, index) =>
+        for (remoteReplicaRef <- remoteReplicaRefs)
+          remoteReplicaRef ! DataChunk(index, chunk)
+      }
+  }
 
 }
 
@@ -43,13 +56,5 @@ class ReplicasStatic(implicit system: ActorSystem) extends Replicas with Logging
                                             .map { data =>
                                               system.actorOf(Props(new RemoteReplicaActor(data)))
                                             }
-
-  override def sendMessage(message: ConsensusMessage) {
-    //TODO implement send message
-  }
-
-  override def sendRequest(message: ConsensusMessage, request: ClientRequest) {
-    //TODO implement send request
-  }
 
 }

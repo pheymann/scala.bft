@@ -50,6 +50,5 @@ object PrePrepareRound {
                          view:            Long,
                          requestDigits:   Array[Byte]
                        ) extends ConsensusMessage
-  case class RequestDelivery(request: ClientRequest, sequenceNumber: Long, view: Long)
 
 }
