@@ -1,3 +1,5 @@
 package com.github.pheymann.scala.bft.model
 
-case class DataChunk(position: Int, chunk: Array[Byte])
+case class StartChunkStream(chunkNumber: Int)
+
+case class DataChunk(chunk: Array[Byte])

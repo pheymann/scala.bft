@@ -4,13 +4,15 @@ import akka.actor.{ActorRef, ActorSystem, Props}
 import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.PrePrepare
 import com.github.pheymann.scala.bft.model.ClientRequest
-import com.github.pheymann.scala.bft.replica.RemoteReplicaActorMock.{ReceivedConsensusMessage, ReceivedDataChunk}
+import com.github.pheymann.scala.bft.replica.RemoteReplicaActorMock.{ReceivedConsensusMessage, ReceivedDataChunk, ReceivedStartStream}
 import com.github.pheymann.scala.bft.util.RequestDigitsGenerator
 import com.github.pheymann.scala.bft.{BftReplicaSpec, WithActorSystem}
 
 import scala.concurrent.duration._
 
 class ReplicasSpec extends BftReplicaSpec {
+
+  sequential
 
   class TestReplicas(val self: Replica, numOfRemoteReplicas: Int, specRef: ActorRef)
                     (implicit system: ActorSystem) extends Replicas {
@@ -44,13 +46,14 @@ class ReplicasSpec extends BftReplicaSpec {
       val message = PrePrepare(replica.id, replica.sequenceNumber, replica.view, RequestDigitsGenerator.generateDigits(request))
 
       within(testDuration) {
-        replicas.sendRequest(message, request)
+        replicas.sendRequest(request)
 
         // chunk size is 8 Bytes -> 5 chunks per remote replica
         expectMsgAllOf(
-          ReceivedDataChunk(0), ReceivedDataChunk(1), ReceivedDataChunk(2), ReceivedDataChunk(3), ReceivedDataChunk(4),
-          ReceivedDataChunk(0), ReceivedDataChunk(1), ReceivedDataChunk(2), ReceivedDataChunk(3), ReceivedDataChunk(4),
-          ReceivedDataChunk(0), ReceivedDataChunk(1), ReceivedDataChunk(2), ReceivedDataChunk(3), ReceivedDataChunk(4)
+          ReceivedStartStream(5), ReceivedStartStream(5), ReceivedStartStream(5),
+          ReceivedDataChunk, ReceivedDataChunk, ReceivedDataChunk, ReceivedDataChunk, ReceivedDataChunk,
+          ReceivedDataChunk, ReceivedDataChunk, ReceivedDataChunk, ReceivedDataChunk, ReceivedDataChunk,
+          ReceivedDataChunk, ReceivedDataChunk, ReceivedDataChunk, ReceivedDataChunk, ReceivedDataChunk
         )
 
         expectNoMsg(1.second)

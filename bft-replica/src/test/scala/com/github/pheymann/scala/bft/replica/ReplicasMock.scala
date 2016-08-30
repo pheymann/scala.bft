@@ -14,7 +14,7 @@ class ReplicasMock(specRef: ActorRef, val self: Replica) extends Replicas {
     specRef ! CalledSendMessage
   }
 
-  override def sendRequest(message: ConsensusMessage, request: ClientRequest) {
+  override def sendRequest(request: ClientRequest) {
     specRef ! CalledSendRequest
   }
 

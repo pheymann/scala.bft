@@ -26,7 +26,7 @@ class PrePrepareRound(
   override def receive = {
     case StartConsensus =>
       replicas.sendMessage(message)
-      replicas.sendRequest(message, consensusContext.request)
+      replicas.sendRequest(consensusContext.request)
 
       sender() ! FinishedPrePrepare
 

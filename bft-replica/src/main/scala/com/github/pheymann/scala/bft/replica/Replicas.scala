@@ -3,11 +3,11 @@ package com.github.pheymann.scala.bft.replica
 import akka.actor.{ActorRef, ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider, Props}
 import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.consensus.ConsensusMessage
-import com.github.pheymann.scala.bft.model.{ClientRequest, DataChunk, RequestDelivery}
+import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
 import com.github.pheymann.scala.bft.replica.Replicas.MissingReplicaSelfDataException
 import com.github.pheymann.scala.bft.util.LoggingUtil
 
-trait Replicas extends Extension {
+trait Replicas extends Extension with LoggingUtil {
 
   def self: Replica
 
@@ -18,15 +18,10 @@ trait Replicas extends Extension {
       remoteReplicaRef ! message
   }
 
-  def sendRequest(message: ConsensusMessage, request: ClientRequest) {
-    RequestDelivery
-      .marshall(RequestDelivery(message.sequenceNumber, message.view, request))
-      .grouped(BftReplicaConfig.messageChunkSize)
-      .zipWithIndex
-      .foreach { case (chunk, index) =>
-        for (remoteReplicaRef <- remoteReplicaRefs)
-          remoteReplicaRef ! DataChunk(index, chunk)
-      }
+  def sendRequest(request: ClientRequest) {
+    ChunkDataStreamSender.send(RequestDelivery(self.sequenceNumber, self.view, request), remoteReplicaRefs)
+
+    info(s"request.send: {${request.clientId},${request.timestamp}}{${self.id},${self.sequenceNumber},${self.view}}")
   }
 
 }
@@ -41,7 +36,7 @@ object Replicas extends ExtensionId[Replicas] with ExtensionIdProvider {
 
 }
 
-class ReplicasStatic(implicit system: ActorSystem) extends Replicas with LoggingUtil {
+class ReplicasStatic(implicit system: ActorSystem) extends Replicas {
 
   private val selfOpt = StaticReplicaDiscovery.replicaData.find(_.id == BftReplicaConfig.selfId)
 
