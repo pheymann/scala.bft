@@ -15,15 +15,12 @@ class ChunkDataStreamReceiverActor(
   private val data = Array.newBuilder[Array[Byte]]
 
   override def receive = {
-    case DataChunk(chunk) =>
+    case DataChunk(replicaId, chunk) =>
       data            += chunk
       receivedChunks  += 1
 
-      if (receivedChunks == chunksNumber) {
+      if (receivedChunks == chunksNumber)
         receiver ! RequestDelivery.unmarshall(data.result.flatten)
-
-        context.stop(self)
-      }
   }
 
 }

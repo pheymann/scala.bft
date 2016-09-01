@@ -14,6 +14,7 @@ trait Libraries extends Versions {
   val akka        = "com.typesafe.akka" %% "akka-actor"   % akkaVersion
   val akkaSlf4j   = "com.typesafe.akka" %% "akka-slf4j"   % akkaVersion
   val akkaRemote  = "com.typesafe.akka" %% "akka-remote"  % akkaVersion
+  val akkaStream  = "com.typesafe.akka" %% "akka-stream"  % akkaVersion
   val akkaTest    = "com.typesafe.akka" %% "akka-testkit" % akkaVersion
 
   val specs2  = "org.specs2"      %% "specs2-core"    % specs2Verison
@@ -27,6 +28,7 @@ object Dependencies extends Libraries {
     akka        % Compile,
     akkaSlf4j   % Compile,
     akkaRemote  % Compile,
+    akkaStream  % Compile,
 
     akkaTest  % Test,
     specs2    % Test,

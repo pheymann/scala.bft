@@ -19,7 +19,7 @@ trait Replicas extends Extension with LoggingUtil {
   }
 
   def sendRequest(request: ClientRequest) {
-    ChunkDataStreamSender.send(RequestDelivery(self.sequenceNumber, self.view, request), remoteReplicaRefs)
+    ChunkDataStreamSender.send(self.id, RequestDelivery(self.sequenceNumber, self.view, request), remoteReplicaRefs)
 
     info(s"request.send: {${request.clientId},${request.timestamp}}{${self.id},${self.sequenceNumber},${self.view}}")
   }

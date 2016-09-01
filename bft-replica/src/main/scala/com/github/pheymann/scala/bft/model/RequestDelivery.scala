@@ -4,7 +4,11 @@ case class RequestDelivery(
                             sequenceNumber: Long,
                             view:           Long,
                             request:        ClientRequest
-                          )
+                          ) {
+
+  lazy val toLog = s"{$sequenceNumber,$view,${request.toLog}}"
+
+}
 
 object RequestDelivery extends ByteArraySerialization[RequestDelivery] {
 

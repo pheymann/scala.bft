@@ -4,7 +4,13 @@ case class ClientRequest(
                           clientId:   Long,
                           timestamp:  Long,
                           body:       Array[Byte]
-                        )
+                        ) {
+
+  def toLog: String = {
+    s"{$clientId,$timestamp}"
+  }
+
+}
 
 object ClientRequest extends ByteArraySerialization[ClientRequest] {
 

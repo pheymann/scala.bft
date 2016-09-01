@@ -10,8 +10,8 @@ class RemoteReplicaActorMock(specRef: ActorRef) extends Actor {
 
   override def receive = {
     case _: ConsensusMessage  => specRef ! ReceivedConsensusMessage
-    case StartChunkStream(numOfChunks) => specRef ! ReceivedStartStream(numOfChunks)
-    case DataChunk(_)  => specRef ! ReceivedDataChunk
+    case StartChunkStream(replicaId, numOfChunks) => specRef ! ReceivedStartStream(numOfChunks)
+    case DataChunk(_, _)  => specRef ! ReceivedDataChunk
   }
 
 }

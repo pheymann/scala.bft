@@ -6,20 +6,20 @@ import com.github.pheymann.scala.bft.model._
 
 object ChunkDataStreamSender {
 
-  def send(delivery: RequestDelivery, remoteReplicaRefs: Seq[ActorRef]) {
+  def send(replicaId: Long, delivery: RequestDelivery, remoteReplicaRefs: Seq[ActorRef]) {
     val chunks = RequestDelivery
       .marshall(delivery)
       .grouped(BftReplicaConfig.messageChunkSize)
       .toSeq
 
     for (remoteReplicaRef <- remoteReplicaRefs)
-      remoteReplicaRef ! StartChunkStream(chunks.length)
+      remoteReplicaRef ! StartChunkStream(replicaId, chunks.length)
 
     for {
       chunk             <- chunks
       remoteReplicaRef  <- remoteReplicaRefs
     } {
-      remoteReplicaRef ! DataChunk(chunk)
+      remoteReplicaRef ! DataChunk(replicaId, chunk)
     }
   }
 
