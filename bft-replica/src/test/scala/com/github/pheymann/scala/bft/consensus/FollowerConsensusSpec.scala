@@ -3,38 +3,28 @@ package com.github.pheymann.scala.bft.consensus
 import com.github.pheymann.scala.bft.{BftReplicaSpec, WithActorSystem}
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.PrePrepare
 import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
+import com.github.pheymann.scala.bft.util.RequestDigitsGenerator
+import org.specs2.concurrent.ExecutionEnv
 
-class FollowerConsensusSpec extends BftReplicaSpec {
+import scala.concurrent._
+
+class FollowerConsensusSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
 
   "The Follower Consensus" should {
-    "only create an instance of its type if the given request and pre-prepare message are valid" in new WithActorSystem {
-      val request     = new ClientRequest(0, 0, Array[Byte](0))
+    "only join a consensus if request and pre-prepare message are valid" in new WithActorSystem {
+      val request         = new ClientRequest(0, 0, Array[Byte](0))
+      val message         = PrePrepare(0L, 0, 0, RequestDigitsGenerator.generateDigits(request))
+
       val specContext = new ConsensusSpecContext(self, request, 2)
-      val message     = PrePrepare(0L, specContext.sequenceNumber, specContext.view, specContext.requestDigits)
 
       import specContext.replicaContext
 
-      FollowerConsensus.createIfValid(
-        message,
-        RequestDelivery(specContext.sequenceNumber, specContext.view, request)
-      ).isDefined should beTrue
+      val consensus = FollowerConsensus()
 
-      FollowerConsensus.createIfValid(
-        message,
-        RequestDelivery(specContext.sequenceNumber + 1, specContext.view, request)
-      ) === None
-
-      FollowerConsensus.createIfValid(
-        message,
-        RequestDelivery(specContext.sequenceNumber, specContext.view + 1, request)
-      ) === None
-
-      val specContextInvalid = new ConsensusSpecContext(self, request, logHasAcceptedOrUnknown = false)
-
-      FollowerConsensus.createIfValid(
-        message,
-        RequestDelivery(specContextInvalid.sequenceNumber, specContextInvalid.view, ClientRequest(0, 0, Array[Byte](1)))
-      )(system, specContextInvalid.replicaContext) === None
+      Future(blocking(consensus ? (message, RequestDelivery(0, 0, request)))) should beTrue.awaitFor(testDuration)
+      Future(blocking(consensus ? (message, RequestDelivery(1, 0, request)))) should beFalse.awaitFor(testDuration)
+      Future(blocking(consensus ? (message, RequestDelivery(0, 1, request)))) should beFalse.awaitFor(testDuration)
+      Future(blocking(consensus ? (message, RequestDelivery(0, 1, ClientRequest(0, 0, Array[Byte](1)))))) should beFalse.awaitFor(testDuration)
     }
   }
 

@@ -1,79 +1,95 @@
 package com.github.pheymann.scala.bft.consensus
 
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
-import com.github.pheymann.scala.bft.consensus.CommitRound.{Commit, FinishedCommit, StartCommit}
-import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{FinishedPrePrepare, JoinConsensus, StartConsensus}
-import com.github.pheymann.scala.bft.consensus.PrepareRound.{FinishedPrepare, Prepare, StartPrepare}
-import com.github.pheymann.scala.bft.model.ClientRequest
+import akka.pattern.ask
+import akka.actor.{ActorRef, ActorSystem, Props}
+import com.github.pheymann.scala.bft.BftReplicaConfig
+import com.github.pheymann.scala.bft.consensus.ConsensusInstanceActor.FinishedConsensus
+import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, PrePrepare, StartConsensus}
+import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
+import com.github.pheymann.scala.bft.replica.MessageBrokerActor.NewConsensusInstance
 import com.github.pheymann.scala.bft.replica.ReplicaContext
-import com.github.pheymann.scala.bft.util.{ActorLoggingUtil, LoggingUtil, RequestDigitsGenerator}
+import com.github.pheymann.scala.bft.util.{LoggingUtil, RequestDigitsGenerator}
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
+import scala.util.control.NonFatal
 
-abstract class ConsensusInstance(request: ClientRequest)
+abstract class ConsensusInstance()
                                 (implicit
                                   system:         ActorSystem,
                                   replicaContext: ReplicaContext
                                 ) extends LoggingUtil {
 
-  import ConsensusInstance._
+  protected def runConsensus(request: ClientRequest): Boolean = {
+    implicit val consensusContext = ConsensusContext(
+      replicaContext.replicas.self.sequenceNumber,
+      replicaContext.replicas.self.view,
+      request,
+      RequestDigitsGenerator.generateDigits(request)
+    )
 
-  protected implicit val consensusContext = ConsensusContext(
-    replicaContext.replicas.self.sequenceNumber,
-    replicaContext.replicas.self.view,
-    request,
-    RequestDigitsGenerator.generateDigits(request)
-  )
+    val instanceRef = system.actorOf(Props(new ConsensusInstanceActor()))
 
-  class ConsensusInstanceActor  extends Actor
-                                with    ActorLogging
-                                with    ActorLoggingUtil {
+    // forward messages to the current consensus instance
+    replicaContext.messaging.messageBrokerRef ! NewConsensusInstance(instanceRef)
 
-    protected val prePrepareRound = createRound(Props(new PrePrepareRound()), "pre-prepare")
-    protected val prepareRound    = createRound(Props(new PrepareRound()), "prepare")
-    protected val commitRound     = createRound(Props(new CommitRound()), "commit")
-
-    private def createRound(round: Props, name: String): ActorRef = {
-      context.system.actorOf(round, s"$name-${consensusContext.toLog}")
+    try {
+      Await.result(startConsensus(instanceRef), BftReplicaConfig.consensusDuration) match {
+        case FinishedConsensus => true
+        case other =>
+          error(s"$logAborted: $other")
+          false
+      }
     }
-
-    private var _sender: ActorRef = null
-
-    override def receive = {
-      case StartConsensus =>
-        _sender = sender()
-        prePrepareRound ! StartConsensus
-      case JoinConsensus =>
-        _sender = sender()
-        prePrepareRound ! JoinConsensus
-
-      case FinishedPrePrepare =>
-        prepareRound ! StartPrepare
-      case FinishedPrepare =>
-        commitRound ! StartCommit
-      case FinishedCommit =>
-        _sender ! FinishedConsensus
-
-      case prepareMessage: Prepare =>
-        prepareRound ! prepareMessage
-      case commitMessage: Commit =>
-        commitRound ! commitMessage
+    catch {
+      case NonFatal(cause) =>
+        error(cause, logAborted)
+        false
     }
-
   }
 
-  val instanceRef = system.actorOf(Props(new ConsensusInstanceActor()))
+  protected def startConsensus(instanceRef: ActorRef): Future[Any]
 
-  def start(): Future[Any]
-
-  def logAborted() {
-    info(s"{${consensusContext.sequenceNumber},${consensusContext.view},[${consensusContext.requestDigits.mkString("")}]}.aborted")
+  private def logAborted(implicit consensusContext: ConsensusContext): String = {
+    "{%d,%d,[%s]}.aborted".format(
+      consensusContext.sequenceNumber,
+      consensusContext.view,
+      consensusContext.requestDigits.mkString("")
+    )
   }
 
 }
 
-object ConsensusInstance {
+case class LeaderConsensus()
+                          (implicit system: ActorSystem, replicaContext: ReplicaContext) extends ConsensusInstance {
 
-  case object FinishedConsensus
+  import com.github.pheymann.scala.bft.BftReplicaConfig.consensusTimeout
+
+  override protected def startConsensus(instanceRef: ActorRef) = instanceRef ? StartConsensus
+
+  def ? (request: ClientRequest): Boolean = runConsensus(request)
+
+}
+
+case class FollowerConsensus()
+                            (implicit system: ActorSystem, replicaContext: ReplicaContext) extends ConsensusInstance {
+
+  import com.github.pheymann.scala.bft.BftReplicaConfig.consensusTimeout
+
+  override protected def startConsensus(instanceRef: ActorRef) = instanceRef ? JoinConsensus
+
+  def ? (message: PrePrepare, requestDelivery: RequestDelivery): Boolean = {
+    val isValid = {
+      message.sequenceNumber == requestDelivery.sequenceNumber &&
+        message.view == requestDelivery.view &&
+        replicaContext.storage.hasAcceptedOrUnknown(message)
+    }
+
+    if (isValid)
+      runConsensus(requestDelivery.request)
+    else {
+      error(s"request.invalid: ${requestDelivery.toLog},${message.toLog}")
+      false
+    }
+  }
 
 }

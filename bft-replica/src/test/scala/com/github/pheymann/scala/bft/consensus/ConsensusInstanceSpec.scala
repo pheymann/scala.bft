@@ -1,38 +1,38 @@
 package com.github.pheymann.scala.bft.consensus
 
-import java.util.concurrent.TimeoutException
-
 import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
-import com.github.pheymann.scala.bft.consensus.ConsensusInstance.FinishedConsensus
-import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, StartConsensus}
+import com.github.pheymann.scala.bft.consensus.ConsensusInstanceActor.FinishedConsensus
+import com.github.pheymann.scala.bft.consensus.PrePrepareRound.PrePrepare
 import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
-import com.github.pheymann.scala.bft.model.ClientRequest
+import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
 import com.github.pheymann.scala.bft.replica.ReplicasMock.{CalledSendMessage, CalledSendRequest}
 import com.github.pheymann.scala.bft.storage.LogStorageMock._
+import com.github.pheymann.scala.bft.util.RequestDigitsGenerator
 import com.github.pheymann.scala.bft.{BftReplicaConfig, BftReplicaSpec, WithActorSystem}
+import org.specs2.concurrent.ExecutionEnv
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
+import scala.concurrent.Future
+import scala.concurrent.blocking
 
-class ConsensusInstanceSpec extends BftReplicaSpec {
+class ConsensusInstanceSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
 
   sequential
 
   """The Consensus Instance and its two implementations for Leaders and Followers is the atomic unit
     |of the protocol handling the three consensus protocol and the internal state. It
   """.stripMargin should {
-    "reach a consensus if all rounds have passed for leader replica" in new WithActorSystem {
+    "reach a consensus if all rounds have passed (leader)" in new WithActorSystem {
       val request     = new ClientRequest(0, 0, Array[Byte](0))
       val specContext = new ConsensusSpecContext(self, request, 1)
 
       import specContext.replicaContext
 
-      val consensus = new LeaderConsensus(request)
+      val consensus = new LeaderConsensus()
 
       within(testDuration * 2) {
-        consensus.instanceRef ! StartConsensus
+        val resultFut = Future(blocking(consensus ? request))
 
-        sendMessages(consensus, specContext)
+        sendMessages(specContext)
 
         expectMsg(CalledStart)
         expectMsg(CalledAddPrePrepare)
@@ -44,21 +44,26 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
         expectMsg(CalledAddCommit)
         expectMsg(CalledFinish)
         expectMsg(FinishedConsensus)
+
+        resultFut should beTrue.awaitFor(testDuration * 2)
       }
     }
 
-    "reach a consensus if all rounds have passed for follower replicas" in new WithActorSystem {
-      val request     = new ClientRequest(0, 0, Array[Byte](1))
+    "reach a consensus if all rounds have passed (follower)" in new WithActorSystem {
+      val request         = new ClientRequest(0, 0, Array[Byte](1))
+      val message         = PrePrepare(0, 0, 0, RequestDigitsGenerator.generateDigits(request))
+      val requestDelivery = RequestDelivery(0, 0, request)
+
       val specContext = new ConsensusSpecContext(self, request, 1)
 
       import specContext.replicaContext
 
-      val consensus = new FollowerConsensus(request)
+      val consensus = new FollowerConsensus()
 
-      within(10.seconds) {
-        consensus.instanceRef ! JoinConsensus
+      within(testDuration * 2) {
+        val resultFut = Future(blocking(consensus ? (message, requestDelivery)))
 
-        sendMessages(consensus, specContext)
+        sendMessages(specContext)
 
         expectMsg(CalledStart)
         expectMsg(CalledAddPrePrepare)
@@ -68,6 +73,8 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
         expectMsg(CalledAddCommit)
         expectMsg(CalledFinish)
         expectMsg(FinishedConsensus)
+
+        resultFut should beTrue.awaitFor(testDuration)
       }
     }
 
@@ -78,38 +85,41 @@ class ConsensusInstanceSpec extends BftReplicaSpec {
       import specContext.replicaContext
       import system.dispatcher
 
-      val consensus = new LeaderConsensus(request)
+      val consensus = new LeaderConsensus()
 
-      val resultFut = Future {
-        isConsensus(consensus)
+      val resultFut = Future(blocking(consensus ? request))
+
+      for (index <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas)) {
+        specContext.replicaContext.messaging.messageBrokerRef ! Prepare(
+          0L,
+          specContext.sequenceNumber,
+          specContext.view,
+          specContext.requestDigits
+        )
       }
 
-      for (index <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas))
-        consensus.instanceRef ! Prepare(0L, specContext.sequenceNumber, specContext.view, specContext.requestDigits)
-
-      Await.result(resultFut, 10.seconds) should beFalse
+      resultFut should beFalse.awaitFor(testDuration * 2)
     }
   }
 
-  def sendMessages(instance: ConsensusInstance, specContext: ConsensusSpecContext) {
-    for (index <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas))
-      instance.instanceRef ! Prepare(0L, specContext.sequenceNumber, specContext.view, specContext.requestDigits)
-
-    for (index <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas + 1))
-      instance.instanceRef ! Commit(0L, specContext.sequenceNumber, specContext.view, specContext.requestDigits)
-  }
-
-  def isConsensus(instance: ConsensusInstance): Boolean = {
-    var isConsensus = false
-
-    try {
-      Await.result(instance.start(), testDuration)
-      isConsensus = true
+  def sendMessages(specContext: ConsensusSpecContext) {
+    for (index <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas)) {
+      specContext.replicaContext.messaging.messageBrokerRef ! Prepare(
+        index,
+        specContext.sequenceNumber,
+        specContext.view,
+        specContext.requestDigits
+      )
     }
-    catch {
-      case _: TimeoutException => instance.logAborted()
+
+    for (index <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas + 1)) {
+      specContext.replicaContext.messaging.messageBrokerRef ! Commit(
+        index,
+        specContext.sequenceNumber,
+        specContext.view,
+        specContext.requestDigits
+      )
     }
-    isConsensus
   }
 
 }

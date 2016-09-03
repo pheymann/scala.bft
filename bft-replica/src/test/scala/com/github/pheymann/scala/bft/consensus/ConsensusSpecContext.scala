@@ -30,6 +30,6 @@ class ConsensusSpecContext(
   val logStorageMock  = new LogStorageMock(specRef, logIsWithWatermarks, logHasAcceptedOrUnknown)
   val replicasMock    = new ReplicasMock(specRef, new Replica(0L, view, sequenceNumber))
 
-  implicit val replicaContext = new ReplicaContextMock(replicasMock, logStorageMock)
+  implicit val replicaContext = new ReplicaContextMock(replicasMock, logStorageMock, specRef)
 
 }
