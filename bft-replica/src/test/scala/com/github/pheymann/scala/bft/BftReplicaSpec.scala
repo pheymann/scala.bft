@@ -17,6 +17,7 @@ abstract class WithActorSystem  extends TestKit(ActorSystem())
 
 trait BftReplicaSpec extends Specification {
 
-  val testDuration = 6.seconds
+  val noMessageDuration = 500.milliseconds
+  val testDuration      = 5.seconds
 
 }

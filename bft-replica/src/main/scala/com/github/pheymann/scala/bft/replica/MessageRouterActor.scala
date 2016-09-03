@@ -10,6 +10,8 @@ class MessageRouterActor(
                           requestBrokerRef: ActorRef
                         ) extends Actor with ActorLoggingUtil {
 
+  debug("started")
+
   override def receive = {
     case message: ConsensusMessage =>
       messageBrokerRef ! message

@@ -19,7 +19,7 @@ object StaticReplicaDiscovery extends LoggingUtil {
     }
     catch {
       case NonFatal(cause) =>
-        error(cause, "failed to create replica date")
+        error(cause, "failed to load replica data")
         throw cause
     }
   }

@@ -13,6 +13,8 @@ class MessageBrokerActor extends Actor with ActorLoggingUtil {
   private var forwardMessage = false
   private var consensusRef: ActorRef = _
 
+  debug("started")
+
   override def receive = {
     case message: ConsensusMessage =>
       debug(s"message.received: ${message.toLog}")

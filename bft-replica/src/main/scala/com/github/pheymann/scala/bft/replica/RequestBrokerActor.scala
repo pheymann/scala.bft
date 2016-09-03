@@ -8,6 +8,8 @@ class RequestBrokerActor(publisherRef: ActorRef) extends Actor with ActorLogging
 
   private var chunkStreamReceiverRefOpt = Option.empty[ActorRef]
 
+  debug("started")
+
   override def receive = {
     case StartChunkStream(replicaId, numberOfChunks) =>
       chunkStreamReceiverRefOpt = chunkStreamReceiverRefOpt.fold {
