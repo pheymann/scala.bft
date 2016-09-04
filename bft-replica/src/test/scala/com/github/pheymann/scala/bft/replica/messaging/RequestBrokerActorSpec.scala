@@ -17,7 +17,7 @@ class RequestBrokerActorSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
 
           system
             .actorSelection("/user/test.broker/request.chunk.stream.0")
-            .resolveOne(testDuration) should not (throwA[ActorNotFound]).awaitFor(testDuration)
+            .resolveOne(testDuration * 2) should not (throwA[ActorNotFound]).awaitFor(testDuration * 2)
         }
 
         checkStreamCreation()
