@@ -10,7 +10,5 @@ lazy val `scala-bft` = project.in(file("."))
 lazy val `scala-bft-replica` = project.in(file("bft-replica"))
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= Dependencies.bftReplica,
-
-    parallelExecution in Test := false
+    libraryDependencies ++= Dependencies.bftReplica
   )
