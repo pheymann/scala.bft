@@ -18,8 +18,10 @@ class ChunkDataStreamSenderSpec extends BftReplicaSpec {
       within(testDuration) {
         ChunkDataStreamSender.send(0, requestDelivery, remoteRefs)
 
-        expectMsgAllOf(ReceivedStartStream(numberOfChunks), ReceivedStartStream(numberOfChunks))
-        expectMsgAllOf(Seq.fill(numberOfChunks * numberOfRemotes)(ReceivedDataChunk): _*)
+        expectMsgAllOf(
+          Seq(ReceivedStartStream(numberOfChunks), ReceivedStartStream(numberOfChunks)) ++
+            Seq.fill(numberOfChunks * numberOfRemotes)(ReceivedDataChunk): _*
+        )
 
         expectNoMsg(noMessageDuration)
       }
