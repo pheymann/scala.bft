@@ -14,6 +14,8 @@ class ChunkDataStreamReceiverActor(
 
   private val data = Array.newBuilder[Array[Byte]]
 
+  debug(s"started: ${self.path}")
+
   override def receive = {
     case DataChunk(replicaId, chunk) =>
       data            += chunk

@@ -12,13 +12,17 @@ class RequestBrokerActor(publisherRef: ActorRef) extends Actor with ActorLogging
 
   override def receive = {
     case StartChunkStream(replicaId, numberOfChunks) =>
+      def createStream(): Option[ActorRef] = {
+        Some(context.actorOf(Props(new ChunkDataStreamReceiverActor(numberOfChunks, self)), s"request.chunk.stream.$replicaId"))
+      }
+
       chunkStreamReceiverRefOpt = chunkStreamReceiverRefOpt.fold {
-        Some(context.actorOf(Props(new ChunkDataStreamReceiverActor(numberOfChunks, self))))
+        createStream()
       } { receiverRef =>
         error(s"request.received.aborted: ${receiverRef.path.name}")
         context.stop(receiverRef)
 
-        Some(context.actorOf(Props(new ChunkDataStreamReceiverActor(numberOfChunks, self)), s"request.chunk.stream.$replicaId"))
+        createStream()
       }
 
     case chunk: DataChunk =>

@@ -10,8 +10,8 @@ class MessageBrokerActor extends Actor with ActorLoggingUtil {
 
   private val queue = collection.mutable.Queue[Any]()
 
-  private var forwardMessage = false
-  private var consensusRef: ActorRef = _
+  private var forwardMessage          = false
+  private var consensusRef: ActorRef  = _
 
   debug("started")
 
