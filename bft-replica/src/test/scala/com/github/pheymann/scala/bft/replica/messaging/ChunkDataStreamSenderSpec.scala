@@ -10,7 +10,8 @@ class ChunkDataStreamSenderSpec extends BftReplicaSpec {
 
   "The ChunkDataStreamSender" should {
     "generate chunks out of a request and send them to all remote replicas" in new WithActorSystem {
-      val remoteRefs      = createRemoteRefs(self, 2)
+      val numberOfRemotes = 2
+      val remoteRefs      = createRemoteRefs(self, numberOfRemotes)
       val requestDelivery = RequestDelivery(0, 0, ClientRequest(0, 0, Array[Byte](1, 2, 3)))
       val numberOfChunks  = ChunkDataStreamSender.generateChunks(requestDelivery).length
 
@@ -18,9 +19,7 @@ class ChunkDataStreamSenderSpec extends BftReplicaSpec {
         ChunkDataStreamSender.send(0, requestDelivery, remoteRefs)
 
         expectMsgAllOf(ReceivedStartStream(numberOfChunks), ReceivedStartStream(numberOfChunks))
-        expectMsgAllOf(Seq.fill(numberOfChunks * 2)(ReceivedDataChunk): _*)
-
-        println("=====> " + numberOfChunks + " - " + 2)
+        expectMsgAllOf(Seq.fill(numberOfChunks * numberOfRemotes)(ReceivedDataChunk): _*)
 
         expectNoMsg(noMessageDuration)
       }
