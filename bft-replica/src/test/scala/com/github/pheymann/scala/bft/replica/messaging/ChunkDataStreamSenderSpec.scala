@@ -9,7 +9,7 @@ import com.github.pheymann.scala.bft.{BftReplicaSpec, WithActorSystem}
 class ChunkDataStreamSenderSpec extends BftReplicaSpec {
 
   "The ChunkDataStreamSender" should {
-    "send generate chunks out of a request and send them to all remote replicas" in new WithActorSystem {
+    "generate chunks out of a request and send them to all remote replicas" in new WithActorSystem {
       val remoteRefs      = createRemoteRefs(self, 2)
       val requestDelivery = RequestDelivery(0, 0, ClientRequest(0, 0, Array[Byte](1, 2, 3)))
       val numberOfChunks  = ChunkDataStreamSender.generateChunks(requestDelivery).length
@@ -19,6 +19,8 @@ class ChunkDataStreamSenderSpec extends BftReplicaSpec {
 
         expectMsgAllOf(ReceivedStartStream(numberOfChunks), ReceivedStartStream(numberOfChunks))
         expectMsgAllOf(Seq.fill(numberOfChunks * 2)(ReceivedDataChunk): _*)
+
+        println("=====> " + numberOfChunks + " - " + 2)
 
         expectNoMsg(noMessageDuration)
       }
