@@ -1,6 +1,6 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.replica.MessageBrokerActor.ConsumeMessage
+import com.github.pheymann.scala.bft.replica.messaging.MessageBrokerActor.ConsumeMessage
 
 trait ConsensusRound extends ConsensusRoundActor {
 

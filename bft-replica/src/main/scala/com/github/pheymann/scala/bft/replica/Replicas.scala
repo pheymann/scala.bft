@@ -5,6 +5,7 @@ import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.consensus.ConsensusMessage
 import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
 import com.github.pheymann.scala.bft.replica.Replicas.MissingReplicaSelfDataException
+import com.github.pheymann.scala.bft.replica.messaging.ChunkDataStreamSender
 import com.github.pheymann.scala.bft.util.LoggingUtil
 
 trait Replicas extends Extension with LoggingUtil {

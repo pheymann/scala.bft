@@ -1,4 +1,4 @@
-package com.github.pheymann.scala.bft.replica
+package com.github.pheymann.scala.bft.replica.messaging
 
 import akka.actor.{Actor, ActorRef, Props}
 import com.github.pheymann.scala.bft.model.{DataChunk, RequestDelivery, StartChunkStream}

@@ -5,8 +5,8 @@ import com.github.pheymann.scala.bft.{BftReplicaConfig, BftReplicaSpec, WithActo
 import com.github.pheymann.scala.bft.consensus.CommitRound.{Commit, FinishedCommit, StartCommit}
 import com.github.pheymann.scala.bft.consensus.PrepareRound.{FinishedPrepare, Prepare, StartPrepare}
 import com.github.pheymann.scala.bft.model.ClientRequest
-import com.github.pheymann.scala.bft.replica.MessageBrokerActor.ConsumeMessage
 import com.github.pheymann.scala.bft.replica.ReplicasMock.CalledSendMessage
+import com.github.pheymann.scala.bft.replica.messaging.MessageBrokerActor.ConsumeMessage
 import com.github.pheymann.scala.bft.storage.LogStorageMock.{CalledAddCommit, CalledAddPrepare, CalledFinish}
 
 class ConsensusRoundSpec extends BftReplicaSpec {

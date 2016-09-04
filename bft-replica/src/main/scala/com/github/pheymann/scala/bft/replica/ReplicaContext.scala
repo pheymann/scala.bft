@@ -1,6 +1,7 @@
 package com.github.pheymann.scala.bft.replica
 
 import akka.actor.{ActorRef, ActorSystem}
+import com.github.pheymann.scala.bft.replica.messaging.Messaging
 import com.github.pheymann.scala.bft.storage.LogStorage
 
 trait ReplicaContext {

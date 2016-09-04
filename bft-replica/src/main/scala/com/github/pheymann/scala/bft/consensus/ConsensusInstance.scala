@@ -6,8 +6,8 @@ import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.consensus.ConsensusInstanceActor.FinishedConsensus
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, PrePrepare, StartConsensus}
 import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
-import com.github.pheymann.scala.bft.replica.MessageBrokerActor.NewConsensusInstance
 import com.github.pheymann.scala.bft.replica.ReplicaContext
+import com.github.pheymann.scala.bft.replica.messaging.MessageBrokerActor.NewConsensusInstance
 import com.github.pheymann.scala.bft.util.{LoggingUtil, RequestDigitsGenerator}
 
 import scala.concurrent.{Await, Future}

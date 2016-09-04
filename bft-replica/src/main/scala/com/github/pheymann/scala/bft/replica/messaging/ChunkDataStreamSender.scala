@@ -1,4 +1,4 @@
-package com.github.pheymann.scala.bft.replica
+package com.github.pheymann.scala.bft.replica.messaging
 
 import akka.actor.ActorRef
 import com.github.pheymann.scala.bft.BftReplicaConfig
