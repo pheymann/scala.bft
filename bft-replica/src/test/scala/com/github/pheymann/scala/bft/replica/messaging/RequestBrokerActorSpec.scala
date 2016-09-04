@@ -7,8 +7,10 @@ import org.specs2.concurrent.ExecutionEnv
 
 class RequestBrokerActorSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
 
+  sequential
+
   "The RequestBroker" should {
-    "create a new DataChunkStream on request and abort already running instances if necessary" in new WithActorSystem {
+    "create a new DataChunkStream on request and abort already running instances if necessary" in new WithActorSystem("create-receiver") {
       val brokerRef = system.actorOf(Props(new RequestBrokerActor(self)), "test.broker")
 
       within(testDuration) {
