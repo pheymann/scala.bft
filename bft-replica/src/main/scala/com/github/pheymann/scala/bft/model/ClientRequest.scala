@@ -6,7 +6,7 @@ case class ClientRequest(
                           body:       Array[Byte]
                         ) {
 
-  def toLog: String = {
+  lazy val toLog: String = {
     s"{$clientId,$timestamp}"
   }
 

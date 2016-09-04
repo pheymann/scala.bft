@@ -34,7 +34,7 @@ class ReplicasSpec extends BftReplicaSpec {
         replicas.sendMessage(Commit(replica.id, replica.sequenceNumber, replica.view, Array.empty))
 
         expectMsgAllOf(ReceivedConsensusMessage, ReceivedConsensusMessage, ReceivedConsensusMessage)
-        expectNoMsg(1.second)
+        expectNoMsg(noMessageDuration)
       }
     }
 
@@ -56,7 +56,7 @@ class ReplicasSpec extends BftReplicaSpec {
           ReceivedDataChunk, ReceivedDataChunk, ReceivedDataChunk, ReceivedDataChunk, ReceivedDataChunk
         )
 
-        expectNoMsg(1.second)
+        expectNoMsg(noMessageDuration)
       }
     }
   }

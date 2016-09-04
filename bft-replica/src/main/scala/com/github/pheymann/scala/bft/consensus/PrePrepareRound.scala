@@ -1,6 +1,5 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.model.ClientRequest
 import com.github.pheymann.scala.bft.replica.ReplicaContext
 
 class PrePrepareRound(

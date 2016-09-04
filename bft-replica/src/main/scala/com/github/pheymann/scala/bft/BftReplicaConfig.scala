@@ -7,6 +7,8 @@ import com.typesafe.config.ConfigFactory
 
 object BftReplicaConfig {
 
+  val messageRouterName = "message.router"
+
   private val config = ConfigFactory.load().getConfig("bft")
 
   val selfId = config.getLong("self.id")

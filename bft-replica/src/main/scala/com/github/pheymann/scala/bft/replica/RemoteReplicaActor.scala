@@ -1,6 +1,7 @@
 package com.github.pheymann.scala.bft.replica
 
 import akka.actor.Actor
+import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.util.ActorLoggingUtil
 
 case class RemoteReplicaActor(
@@ -13,7 +14,7 @@ case class RemoteReplicaActor(
 
   def this(data: ReplicaData) = this(data.id, data.host, data.port)
 
-  private val remoteSelect = context.actorSelection(s"akka.tcp://scala-bft-replica@$host:$port/user/message.router")
+  private val remoteSelect = context.actorSelection(s"akka.tcp://scala-bft-replica@$host:$port/user/${BftReplicaConfig.messageRouterName}")
 
   override def receive = {
     case message => remoteSelect ! message

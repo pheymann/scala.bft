@@ -1,12 +1,12 @@
 package com.github.pheymann.scala.bft.replica.messaging
 
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import com.github.pheymann.scala.bft.model.{ClientRequest, DataChunk, RequestDelivery, StartChunkStream}
+import akka.actor.{ActorRef, ActorSystem, Props}
+import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
+import com.github.pheymann.scala.bft.replica.RemoteReplicaActorMock
+import com.github.pheymann.scala.bft.replica.RemoteReplicaActorMock.{ReceivedDataChunk, ReceivedStartStream}
 import com.github.pheymann.scala.bft.{BftReplicaSpec, WithActorSystem}
 
 class ChunkDataStreamSenderSpec extends BftReplicaSpec {
-
-  import RemoteReplicaMockActor._
 
   "The ChunkDataStreamSender" should {
     "send generate chunks out of a request and send them to all remote replicas" in new WithActorSystem {
@@ -17,8 +17,8 @@ class ChunkDataStreamSenderSpec extends BftReplicaSpec {
       within(testDuration) {
         ChunkDataStreamSender.send(0, requestDelivery, remoteRefs)
 
-        expectMsgAllOf(ReceivedStartStream, ReceivedStartStream)
-        expectMsgAllOf(Seq.fill(numberOfChunks * 2)(ReceivedChunk): _*)
+        expectMsgAllOf(ReceivedStartStream(numberOfChunks), ReceivedStartStream(numberOfChunks))
+        expectMsgAllOf(Seq.fill(numberOfChunks * 2)(ReceivedDataChunk): _*)
 
         expectNoMsg(noMessageDuration)
       }
@@ -27,25 +27,9 @@ class ChunkDataStreamSenderSpec extends BftReplicaSpec {
 
   def createRemoteRefs(specRef: ActorRef, numberOfRefs: Int)
                       (implicit system: ActorSystem): Seq[ActorRef] = {
-    def createRemoteRef(): ActorRef = system.actorOf(Props(new RemoteReplicaMockActor(specRef)))
+    def createRemoteRef(): ActorRef = system.actorOf(Props(new RemoteReplicaActorMock(specRef)))
 
     Seq.fill(numberOfRefs)(createRemoteRef())
-  }
-
-  class RemoteReplicaMockActor(specRef: ActorRef) extends Actor {
-
-    override def receive = {
-      case _: StartChunkStream  => specRef ! ReceivedStartStream
-      case _: DataChunk         => specRef ! ReceivedChunk
-    }
-
-  }
-
-  object RemoteReplicaMockActor {
-
-    case object ReceivedStartStream
-    case object ReceivedChunk
-
   }
 
 }

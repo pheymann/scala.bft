@@ -40,7 +40,7 @@ trait ConsensusRound extends ConsensusRoundActor {
         executeMessage(message)
       }
 
-      sender ! ConsumeMessage
+      sender() ! ConsumeMessage
 
     case message: ConsensusMessage =>
       if (!roundIsComplete && isValidMessage(message)) {
