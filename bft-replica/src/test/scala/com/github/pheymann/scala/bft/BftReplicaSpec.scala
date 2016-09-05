@@ -6,9 +6,9 @@ import org.specs2.mutable.{After, Specification}
 
 import scala.concurrent.duration._
 
-abstract class WithActorSystem  extends TestKit(ActorSystem())
-                                with    After
-                                with    ImplicitSender {
+abstract class WithActorSystem(name: String = "default")  extends TestKit(ActorSystem(name))
+                                                          with    After
+                                                          with    ImplicitSender {
 
   def after = system.terminate()
 
@@ -17,6 +17,7 @@ abstract class WithActorSystem  extends TestKit(ActorSystem())
 
 trait BftReplicaSpec extends Specification {
 
-  val testDuration = 6.seconds
+  val noMessageDuration = 500.milliseconds
+  val testDuration      = 5.seconds
 
 }

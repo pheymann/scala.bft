@@ -2,7 +2,7 @@ package com.github.pheymann.scala.bft.replica
 
 import akka.actor.ActorRef
 import com.github.pheymann.scala.bft.consensus.ConsensusMessage
-import com.github.pheymann.scala.bft.util.ClientRequest
+import com.github.pheymann.scala.bft.model.ClientRequest
 
 class ReplicasMock(specRef: ActorRef, val self: Replica) extends Replicas {
 
@@ -10,10 +10,11 @@ class ReplicasMock(specRef: ActorRef, val self: Replica) extends Replicas {
 
   private[replica] val remoteReplicaRefs = Seq.empty
 
-  def sendMessage(message: ConsensusMessage) {
+  override def sendMessage(message: ConsensusMessage) {
     specRef ! CalledSendMessage
   }
-  def sendRequest(message: ConsensusMessage, request: ClientRequest) {
+
+  override def sendRequest(request: ClientRequest) {
     specRef ! CalledSendRequest
   }
 

@@ -2,7 +2,7 @@ package com.github.pheymann.scala.bft.storage
 
 import akka.actor.ActorRef
 import com.github.pheymann.scala.bft.consensus.ConsensusMessage
-import com.github.pheymann.scala.bft.util.ClientRequest
+import com.github.pheymann.scala.bft.model.ClientRequest
 
 class LogStorageMock(
                       specRef: ActorRef,

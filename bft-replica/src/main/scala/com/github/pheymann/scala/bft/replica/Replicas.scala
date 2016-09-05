@@ -3,17 +3,28 @@ package com.github.pheymann.scala.bft.replica
 import akka.actor.{ActorRef, ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider, Props}
 import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.consensus.ConsensusMessage
+import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
 import com.github.pheymann.scala.bft.replica.Replicas.MissingReplicaSelfDataException
-import com.github.pheymann.scala.bft.util.{ClientRequest, LoggingUtil}
+import com.github.pheymann.scala.bft.replica.messaging.ChunkDataStreamSender
+import com.github.pheymann.scala.bft.util.LoggingUtil
 
-trait Replicas extends Extension {
+trait Replicas extends Extension with LoggingUtil {
 
   def self: Replica
 
   private[replica] def remoteReplicaRefs: Seq[ActorRef]
 
-  def sendMessage(message: ConsensusMessage): Unit
-  def sendRequest(message: ConsensusMessage, request: ClientRequest): Unit
+  def sendMessage(message: ConsensusMessage) {
+    for (remoteReplicaRef <- remoteReplicaRefs)
+      remoteReplicaRef ! message
+  }
+
+  def sendRequest(request: ClientRequest) {
+    val delivery = RequestDelivery(self.sequenceNumber, self.view, request)
+
+    ChunkDataStreamSender.send(self.id, RequestDelivery(self.sequenceNumber, self.view, request), remoteReplicaRefs)
+    info(s"request.send: ${delivery.toLog}")
+  }
 
 }
 
@@ -27,7 +38,7 @@ object Replicas extends ExtensionId[Replicas] with ExtensionIdProvider {
 
 }
 
-class ReplicasStatic(implicit system: ActorSystem) extends Replicas with LoggingUtil {
+class ReplicasStatic(implicit system: ActorSystem) extends Replicas {
 
   private val selfOpt = StaticReplicaDiscovery.replicaData.find(_.id == BftReplicaConfig.selfId)
 
@@ -43,13 +54,5 @@ class ReplicasStatic(implicit system: ActorSystem) extends Replicas with Logging
                                             .map { data =>
                                               system.actorOf(Props(new RemoteReplicaActor(data)))
                                             }
-
-  override def sendMessage(message: ConsensusMessage) {
-    //TODO implement send message
-  }
-
-  override def sendRequest(message: ConsensusMessage, request: ClientRequest) {
-    //TODO implement send request
-  }
 
 }

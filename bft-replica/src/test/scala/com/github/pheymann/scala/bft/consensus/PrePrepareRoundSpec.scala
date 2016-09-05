@@ -3,9 +3,9 @@ package com.github.pheymann.scala.bft.consensus
 import akka.actor.Props
 import com.github.pheymann.scala.bft.{BftReplicaSpec, WithActorSystem}
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{FinishedPrePrepare, JoinConsensus, StartConsensus}
+import com.github.pheymann.scala.bft.model.ClientRequest
 import com.github.pheymann.scala.bft.replica.ReplicasMock.{CalledSendMessage, CalledSendRequest}
 import com.github.pheymann.scala.bft.storage.LogStorageMock.{CalledAddPrePrepare, CalledStart}
-import com.github.pheymann.scala.bft.util.ClientRequest
 
 class PrePrepareRoundSpec extends BftReplicaSpec {
   
@@ -13,10 +13,11 @@ class PrePrepareRoundSpec extends BftReplicaSpec {
 
   "The Pre-Prepare Round" should {
     "start a consensus as leader by sending the request and related message to all replicas" in new WithActorSystem {
-      val request     = new ClientRequest(Array[Byte](0))
-      val specContext = new ConsensusSpecContext(self, request, 3)
+      val request     = new ClientRequest(0, 0, Array[Byte](0))
+      val specContext = new ConsensusSpecContext(request)(self, 3)
 
-      import specContext.{consensusContext, replicaContext}
+      import specContext.consensusContext
+      import specContext.context.replicaContext
 
       val prePrepareRound = system.actorOf(Props(new PrePrepareRound()))
 
@@ -32,10 +33,11 @@ class PrePrepareRoundSpec extends BftReplicaSpec {
     }
 
     "or join a already started consensus as follower" in new WithActorSystem {
-      val request     = new ClientRequest(Array[Byte](1))
-      val specContext = new ConsensusSpecContext(self, request, 3)
+      val request     = new ClientRequest(0, 0, Array[Byte](1))
+      val specContext = new ConsensusSpecContext(request)(self, 3)
 
-      import specContext.{consensusContext, replicaContext}
+      import specContext.consensusContext
+      import specContext.context.replicaContext
 
       val prePrepareRound = system.actorOf(Props(new PrePrepareRound()))
 

@@ -1,5 +1,7 @@
 package com.github.pheymann.scala.bft.consensus
 
+import com.github.pheymann.scala.bft.replica.messaging.MessageBrokerActor.ConsumeMessage
+
 trait ConsensusRound extends ConsensusRoundActor {
 
   import ConsensusRound._
@@ -38,6 +40,8 @@ trait ConsensusRound extends ConsensusRoundActor {
         executeMessage(message)
       }
 
+      sender() ! ConsumeMessage
+
     case message: ConsensusMessage =>
       if (!roundIsComplete && isValidMessage(message)) {
         if (messageCounter == expectedMessages) {
@@ -54,6 +58,8 @@ trait ConsensusRound extends ConsensusRoundActor {
           messageCounter += 1
         }
       }
+
+      sender() ! ConsumeMessage
   }
 
 }

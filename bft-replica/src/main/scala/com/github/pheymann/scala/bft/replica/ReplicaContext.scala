@@ -1,27 +1,32 @@
 package com.github.pheymann.scala.bft.replica
 
-import akka.actor.{ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider}
+import akka.actor.{ActorRef, ActorSystem}
+import com.github.pheymann.scala.bft.replica.messaging.Messaging
 import com.github.pheymann.scala.bft.storage.LogStorage
 
-trait ReplicaContext extends Extension {
+trait ReplicaContext {
+
+  def messaging: Messaging
 
   def replicas: Replicas
   def storage:  LogStorage
 
 }
 
-object ReplicaContext extends ExtensionId[ReplicaContext]
-                      with    ExtensionIdProvider {
+object ReplicaContext {
 
-  override def lookup = this
-
-  override def createExtension(system: ExtendedActorSystem): ReplicaContext = new ReplicaContextService()(system)
+  def apply(publisherRef: ActorRef, system: ActorSystem): ReplicaContext = {
+    new ReplicaContextExtension(publisherRef)(system)
+  }
 
 }
 
-class ReplicaContextService(implicit system: ActorSystem) extends ReplicaContext {
+class ReplicaContextExtension(publisherRef: ActorRef)
+                             (implicit system: ActorSystem) extends ReplicaContext {
 
-  val replicas  = Replicas(system)
-  val storage   = LogStorage(system)
+  override val messaging = Messaging(publisherRef, system)
+
+  override val replicas  = Replicas(system)
+  override val storage   = LogStorage(system)
 
 }

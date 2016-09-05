@@ -7,11 +7,15 @@ import com.typesafe.config.ConfigFactory
 
 object BftReplicaConfig {
 
+  val messageRouterName = "message.router"
+
   private val config = ConfigFactory.load().getConfig("bft")
 
-  private val bftConfig = config.getConfig("replica")
-
   val selfId = config.getLong("self.id")
+
+  val messageChunkSize = config.getInt("message.chunk-size")
+
+  private val bftConfig = config.getConfig("replica")
 
   val replicaHostFile = bftConfig.getString("hosts-file")
 
@@ -22,7 +26,7 @@ object BftReplicaConfig {
 
   import scala.concurrent.duration._
 
-  val timeoutDuration = FiniteDuration(bftConfig.getDuration("consensus-timeout").toNanos, TimeUnit.NANOSECONDS)
-  implicit val consensusTimeout = Timeout(timeoutDuration)
+  val consensusDuration = FiniteDuration(bftConfig.getDuration("consensus-timeout").toNanos, TimeUnit.NANOSECONDS)
+  implicit val consensusTimeout = Timeout(consensusDuration)
 
 }
