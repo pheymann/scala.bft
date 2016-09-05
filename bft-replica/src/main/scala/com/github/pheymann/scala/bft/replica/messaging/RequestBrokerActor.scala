@@ -19,10 +19,11 @@ class RequestBrokerActor(publisherRef: ActorRef) extends Actor with ActorLogging
       chunkStreamReceiverRefOpt = chunkStreamReceiverRefOpt.fold {
         createStream()
       } { receiverRef =>
-        error(s"request.received.aborted: ${receiverRef.path.name}")
-        context.stop(receiverRef)
+        //TODO check what's happening if the leader gets faulty during request transmission (we could wait forever until the request is received): view change should abort currently running streams
+        error(s"request.received.not-allowed: from $replicaId")
 
-        createStream()
+        // stay with the old chunk stream
+        Some(receiverRef)
       }
 
     case chunk: DataChunk =>

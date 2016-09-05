@@ -10,20 +10,20 @@ class RequestBrokerActorSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
   sequential
 
   "The RequestBroker" should {
-    "create a new DataChunkStream on request and abort already running instances if necessary" in new WithActorSystem("create-receiver") {
+    "create a new DataChunkStream on request and ignore new requests as long as a running instances exists" in new WithActorSystem("create-receiver") {
       val brokerRef = system.actorOf(Props(new RequestBrokerActor(self)), "test.broker")
 
       within(testDuration) {
-        def checkStreamCreation() = {
-          brokerRef ! StartChunkStream(0, 1)
+        def checkStreamCreation(replicaId: Long) = {
+          brokerRef ! StartChunkStream(replicaId, 1)
 
           system
             .actorSelection("/user/test.broker/request.chunk.stream.0")
             .resolveOne(testDuration * 2) should not (throwA[ActorNotFound]).awaitFor(testDuration * 2)
         }
 
-        checkStreamCreation()
-        checkStreamCreation()
+        checkStreamCreation(0)
+        checkStreamCreation(1)
       }
     }
 
