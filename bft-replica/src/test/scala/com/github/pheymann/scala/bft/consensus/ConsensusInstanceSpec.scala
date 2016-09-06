@@ -7,7 +7,7 @@ import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
 import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
 import com.github.pheymann.scala.bft.replica.ReplicasMock.{CalledSendMessage, CalledSendRequest}
 import com.github.pheymann.scala.bft.storage.LogStorageMock._
-import com.github.pheymann.scala.bft.util.RequestDigitsGenerator
+import com.github.pheymann.scala.bft.util.AuthenticationDigitsGenerator
 import com.github.pheymann.scala.bft.{BftReplicaConfig, BftReplicaSpec, SpecContext, WithActorSystem}
 import org.specs2.concurrent.ExecutionEnv
 
@@ -32,7 +32,7 @@ class ConsensusInstanceSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
       within(testDuration * 2) {
         val resultFut = Future(blocking(consensus ? request))
 
-        sendMessages(specContext, RequestDigitsGenerator.generateDigits(request))
+        sendMessages(specContext, AuthenticationDigitsGenerator.generateDigits(request))
 
         expectMsg(CalledStart)
         expectMsg(CalledAddPrePrepare)
@@ -54,7 +54,7 @@ class ConsensusInstanceSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
       val specContext = new SpecContext(self, 1)
 
       val request         = new ClientRequest(0, 0, Array[Byte](1))
-      val message         = PrePrepare(0, 0, 0, RequestDigitsGenerator.generateDigits(request))
+      val message         = PrePrepare(0, 0, 0, AuthenticationDigitsGenerator.generateDigits(request))
       val requestDelivery = RequestDelivery(0, 0, request)
 
       import specContext.replicaContext
@@ -64,7 +64,7 @@ class ConsensusInstanceSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
       within(testDuration * 2) {
         val resultFut = Future(blocking(consensus ? (message, requestDelivery)))
 
-        sendMessages(specContext, RequestDigitsGenerator.generateDigits(request))
+        sendMessages(specContext, AuthenticationDigitsGenerator.generateDigits(request))
 
         expectMsg(CalledStart)
         expectMsg(CalledAddPrePrepare)
@@ -84,7 +84,7 @@ class ConsensusInstanceSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
       val specContext = new SpecContext(self, 1)
 
       val request       = new ClientRequest(0, 0, Array[Byte](2))
-      val requestDigits = RequestDigitsGenerator.generateDigits(request)
+      val requestDigits = AuthenticationDigitsGenerator.generateDigits(request)
 
       import specContext.replicaContext
       import system.dispatcher

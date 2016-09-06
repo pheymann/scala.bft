@@ -9,7 +9,7 @@ import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, P
 import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
 import com.github.pheymann.scala.bft.replica.{Replica, ReplicaContext}
 import com.github.pheymann.scala.bft.replica.messaging.MessageBrokerActor.NewConsensusInstance
-import com.github.pheymann.scala.bft.util.{LoggingUtil, RequestDigitsGenerator}
+import com.github.pheymann.scala.bft.util.{LoggingUtil, AuthenticationDigitsGenerator}
 
 import scala.concurrent.{Await, Future}
 import scala.util.control.NonFatal
@@ -24,12 +24,12 @@ abstract class ConsensusInstance()
   import BftReplicaConfig.consensusTimeout
 
   protected def runConsensus(request: ClientRequest): Boolean = {
-    val requestDigits = RequestDigitsGenerator.generateDigits(request)
+    val requestDigits = AuthenticationDigitsGenerator.generateDigits(request)
 
     val consensusFut = replicaContext.replicas.retrieveSessionKeys.flatMap { sessionKeys =>
       val requestMacs: Map[Long, Mac] = sessionKeys
         .map { case (id, key) =>
-          id -> RequestDigitsGenerator.generateMAC(requestDigits, key)
+          id -> AuthenticationDigitsGenerator.generateMAC(requestDigits, key)
         }(collection.breakOut)
 
       implicit val consensusContext = ConsensusContext(

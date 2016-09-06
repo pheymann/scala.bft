@@ -5,7 +5,7 @@ import java.security.MessageDigest
 import com.github.pheymann.scala.bft.Types.{Mac, RequestDigits, SessionKey}
 import com.github.pheymann.scala.bft.model.ClientRequest
 
-object RequestDigitsGenerator {
+object AuthenticationDigitsGenerator {
 
   private val digitsGenerator = MessageDigest.getInstance("MD5")
 

@@ -5,7 +5,7 @@ import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.PrePrepare
 import com.github.pheymann.scala.bft.model.ClientRequest
 import com.github.pheymann.scala.bft.replica.RemoteReplicaActorMock.{ReceivedConsensusMessage, ReceivedDataChunk, ReceivedStartStream}
-import com.github.pheymann.scala.bft.util.RequestDigitsGenerator
+import com.github.pheymann.scala.bft.util.AuthenticationDigitsGenerator
 import com.github.pheymann.scala.bft.{BftReplicaSpec, WithActorSystem}
 
 import scala.concurrent.duration._
@@ -43,7 +43,7 @@ class ReplicasSpec extends BftReplicaSpec {
       val replicas  = new TestReplicas(replica, 3, self)
 
       val request = ClientRequest(0, 0, Array[Byte](0, 1, 2, 3))
-      val message = PrePrepare(replica.id, replica.sequenceNumber, replica.view, RequestDigitsGenerator.generateDigits(request))
+      val message = PrePrepare(replica.id, replica.sequenceNumber, replica.view, AuthenticationDigitsGenerator.generateDigits(request))
 
       within(testDuration) {
         replicas.sendRequest(request)
