@@ -8,6 +8,8 @@ package object bft {
     type Mac            = Array[Byte]
     type SessionKey     = Array[Byte]
 
+    type DigitalSignature = Array[Byte]
+
     final val EmptyMac  = Array.empty[Byte]
 
   }

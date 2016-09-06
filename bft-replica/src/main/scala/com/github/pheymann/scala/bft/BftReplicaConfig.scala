@@ -24,6 +24,8 @@ object BftReplicaConfig {
   val lowWatermark  = bftConfig.getInt("water-mark.low")
   val highWatermark = bftConfig.getInt("water-mark.high")
 
+  val signatureStrategy = bftConfig.getString("signature.strategy")
+
   import scala.concurrent.duration._
 
   val consensusDuration = FiniteDuration(bftConfig.getDuration("timeout.consensus").toNanos, TimeUnit.NANOSECONDS)
