@@ -3,10 +3,11 @@ package com.github.pheymann.scala.bft.consensus
 import akka.pattern.ask
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.github.pheymann.scala.bft.BftReplicaConfig
+import com.github.pheymann.scala.bft.Types.{Mac, RequestDigits, SessionKey}
 import com.github.pheymann.scala.bft.consensus.ConsensusInstanceActor.FinishedConsensus
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, PrePrepare, StartConsensus}
 import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
-import com.github.pheymann.scala.bft.replica.ReplicaContext
+import com.github.pheymann.scala.bft.replica.{Replica, ReplicaContext}
 import com.github.pheymann.scala.bft.replica.messaging.MessageBrokerActor.NewConsensusInstance
 import com.github.pheymann.scala.bft.util.{LoggingUtil, RequestDigitsGenerator}
 
@@ -19,41 +20,56 @@ abstract class ConsensusInstance()
                                   replicaContext: ReplicaContext
                                 ) extends LoggingUtil {
 
+  import system.dispatcher
+  import BftReplicaConfig.consensusTimeout
+
   protected def runConsensus(request: ClientRequest): Boolean = {
-    implicit val consensusContext = ConsensusContext(
-      replicaContext.replicas.self.sequenceNumber,
-      replicaContext.replicas.self.view,
-      request,
-      RequestDigitsGenerator.generateDigits(request)
-    )
+    val requestDigits = RequestDigitsGenerator.generateDigits(request)
 
-    val instanceRef = system.actorOf(Props(new ConsensusInstanceActor()))
+    val consensusFut = replicaContext.replicas.retrieveSessionKeys.flatMap { sessionKeys =>
+      val requestMacs: Map[Long, Mac] = sessionKeys
+        .map { case (id, key) =>
+          id -> RequestDigitsGenerator.generateMAC(requestDigits, key)
+        }(collection.breakOut)
 
-    // forward messages to the current consensus instance
-    replicaContext.messaging.messageBrokerRef ! NewConsensusInstance(instanceRef)
+      implicit val consensusContext = ConsensusContext(
+        replicaContext.replicas.self.sequenceNumber,
+        replicaContext.replicas.self.view,
+        request,
+        requestDigits,
+        requestMacs
+      )
+
+      val instanceRef = system.actorOf(Props(new ConsensusInstanceActor()))
+
+      // forward messages to the current consensus instance
+      replicaContext.messaging.messageBrokerRef ! NewConsensusInstance(instanceRef)
+
+      startConsensus(instanceRef)
+    }
 
     try {
-      Await.result(startConsensus(instanceRef), BftReplicaConfig.consensusDuration) match {
+      Await.result(consensusFut, BftReplicaConfig.consensusDuration) match {
         case FinishedConsensus => true
         case other =>
-          error(s"$logAborted: $other")
+          error(s"${logAborted(requestDigits)}: $other")
           false
       }
     }
     catch {
       case NonFatal(cause) =>
-        error(cause, logAborted)
+        error(cause, logAborted(requestDigits))
         false
     }
   }
 
   protected def startConsensus(instanceRef: ActorRef): Future[Any]
 
-  private def logAborted(implicit consensusContext: ConsensusContext): String = {
+  private def logAborted(digits: RequestDigits): String = {
     "{%d,%d,[%s]}.aborted".format(
-      consensusContext.sequenceNumber,
-      consensusContext.view,
-      consensusContext.requestDigits.mkString("")
+      replicaContext.replicas.self.sequenceNumber,
+      replicaContext.replicas.self.view,
+      digits.mkString("")
     )
   }
 

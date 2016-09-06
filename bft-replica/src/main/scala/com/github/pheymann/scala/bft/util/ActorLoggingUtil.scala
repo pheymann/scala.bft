@@ -8,6 +8,10 @@ trait ActorLoggingUtil extends ActorLogging { this: Actor =>
     log.error(msg)
   }
 
+  def error(cause: Throwable, msg: => String) {
+    log.error(cause, msg)
+  }
+
   def info(msg: => String) {
     if (log.isInfoEnabled)
       log.info(msg)

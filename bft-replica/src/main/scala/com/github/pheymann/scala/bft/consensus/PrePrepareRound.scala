@@ -1,5 +1,7 @@
 package com.github.pheymann.scala.bft.consensus
 
+import com.github.pheymann.scala.bft.Types
+import com.github.pheymann.scala.bft.Types._
 import com.github.pheymann.scala.bft.replica.ReplicaContext
 
 class PrePrepareRound(
@@ -44,10 +46,16 @@ object PrePrepareRound {
   case object FinishedPrePrepare
 
   case class PrePrepare(
-                         replicaId:       Long,
-                         sequenceNumber:  Long,
-                         view:            Long,
-                         requestDigits:   Array[Byte]
-                       ) extends ConsensusMessage
+                          replicaId:      Long,
+                          sequenceNumber: Long,
+                          view:           Long,
+                          requestDigits:  RequestDigits,
+
+                          requestMac:     Mac = Types.EmptyMac
+                       ) extends ConsensusMessage {
+
+    override def withMac(requestMac: Mac) = copy(requestMac = requestMac)
+
+  }
 
 }

@@ -1,5 +1,6 @@
 package com.github.pheymann.scala.bft.consensus
 
+import com.github.pheymann.scala.bft.Types.RequestDigits
 import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.PrePrepare
 import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
@@ -105,7 +106,7 @@ class ConsensusInstanceSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
     }
   }
 
-  def sendMessages(specContext: SpecContext, requestDigits: Array[Byte]) {
+  def sendMessages(specContext: SpecContext, requestDigits: RequestDigits) {
     for (index <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas)) {
       specContext.replicaContext.messaging.messageBrokerRef ! Prepare(
         index,

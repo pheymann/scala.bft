@@ -1,6 +1,7 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.BftReplicaConfig
+import com.github.pheymann.scala.bft.{BftReplicaConfig, Types}
+import com.github.pheymann.scala.bft.Types.{Mac, RequestDigits}
 import com.github.pheymann.scala.bft.consensus.ConsensusRound.StartRound
 import com.github.pheymann.scala.bft.replica.ReplicaContext
 
@@ -40,7 +41,12 @@ object PrepareRound {
                       replicaId:      Long,
                       sequenceNumber: Long,
                       view:           Long,
-                      requestDigits:  Array[Byte]
-                    ) extends ConsensusMessage
+                      requestDigits:  RequestDigits,
+
+                      requestMac:     Mac = Types.EmptyMac
+                    ) extends ConsensusMessage {
+    override def withMac(requestMac: Mac): ConsensusMessage = copy(requestMac = requestMac)
+
+  }
 
 }

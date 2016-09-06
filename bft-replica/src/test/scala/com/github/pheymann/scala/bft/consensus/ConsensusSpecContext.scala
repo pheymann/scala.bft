@@ -1,7 +1,8 @@
 package com.github.pheymann.scala.bft.consensus
 
 import akka.actor.{ActorRef, ActorSystem}
-import com.github.pheymann.scala.bft.SpecContext
+import com.github.pheymann.scala.bft.Types.Mac
+import com.github.pheymann.scala.bft.{SpecContext, Types}
 import com.github.pheymann.scala.bft.model.ClientRequest
 import com.github.pheymann.scala.bft.util.RequestDigitsGenerator
 
@@ -28,7 +29,8 @@ class ConsensusSpecContext(
     context.sequenceNumber,
     context.view,
     request,
-    requestDigits
+    requestDigits,
+    Map.empty[Long, Mac]
   )
 
 }
