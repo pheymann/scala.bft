@@ -53,7 +53,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
         expectMsg(ConsumeMessage)
 
         for (index <- 0 until expectedMsgPrepare)
-          prepareRound ! Prepare(index, specContext.context.sequenceNumber, specContext.context.view, specContext.requestDigits)
+          prepareRound ! Prepare(index, specContext.context.sequenceNumber, specContext.context.view)
 
         expectMsgAllOf(Seq(CalledAddPrepare, FinishedPrepare) ++ Seq.fill(expectedMsgPrepare)(ConsumeMessage): _*)
 
@@ -77,7 +77,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
         expectMsg(ConsumeMessage)
 
         for (index <- 0 until expectedMsgCommit)
-          commitRound ! Commit(index, specContext.context.sequenceNumber, specContext.context.view, specContext.requestDigits)
+          commitRound ! Commit(index, specContext.context.sequenceNumber, specContext.context.view)
 
         expectMsgAllOf(Seq(CalledAddCommit, CalledFinish, FinishedCommit) ++ Seq.fill(expectedMsgCommit)(ConsumeMessage): _*)
 
@@ -101,11 +101,11 @@ class ConsensusRoundSpec extends BftReplicaSpec {
         expectMsg(ConsumeMessage)
 
         for (index <- 0 until expectedMsgCommit)
-          commitRound ! Commit(index, specContext.context.sequenceNumber, specContext.context.view, specContext.requestDigits)
+          commitRound ! Commit(index, specContext.context.sequenceNumber, specContext.context.view)
 
         expectMsgAllOf(Seq(CalledAddCommit, CalledFinish, FinishedCommit) ++ Seq.fill(expectedMsgCommit)(ConsumeMessage): _*)
 
-        commitRound ! Commit(0, specContext.context.sequenceNumber, specContext.context.view, specContext.requestDigits)
+        commitRound ! Commit(0, specContext.context.sequenceNumber, specContext.context.view)
         expectMsg(ConsumeMessage)
 
         expectNoMsg(noMessageDuration)
@@ -123,7 +123,7 @@ class ConsensusRoundSpec extends BftReplicaSpec {
 
       within(testDuration) {
         for (index <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas + 1))
-          commitRound ! Commit(index, specContext.context.sequenceNumber, specContext.context.view, specContext.requestDigits)
+          commitRound ! Commit(index, specContext.context.sequenceNumber, specContext.context.view)
 
         expectMsgAllOf(Seq.fill(expectedMsgCommit)(ConsumeMessage): _*)
 

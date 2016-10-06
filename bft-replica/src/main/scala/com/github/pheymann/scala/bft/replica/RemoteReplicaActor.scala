@@ -3,10 +3,10 @@ package com.github.pheymann.scala.bft.replica
 import akka.actor.Actor
 import akka.pattern.ask
 import com.github.pheymann.scala.bft.BftReplicaConfig
-import com.github.pheymann.scala.bft.Types.SessionKey
+import com.github.pheymann.scala.bft.Types.{Mac, SessionKey}
 import com.github.pheymann.scala.bft.consensus.ConsensusMessage
 import com.github.pheymann.scala.bft.model.{DataChunk, StartChunkStream}
-import com.github.pheymann.scala.bft.util.ActorLoggingUtil
+import com.github.pheymann.scala.bft.util.{ActorLoggingUtil, AuthenticationDigitsGenerator, AuthenticationDigitsVerification}
 
 import scala.concurrent.Await
 import scala.util.control.NonFatal
@@ -38,7 +38,20 @@ case class RemoteReplicaActor(
   }
 
   override def receive = {
-    case message@(_: ConsensusMessage | _: StartChunkStream | _: DataChunk) => remoteSelect ! message
+    // received consensus message
+    case SignedConsensusMessage(message, mac) =>
+      if (AuthenticationDigitsVerification.verifyMac(mac, AuthenticationDigitsGenerator.generateMAC(message, sessionKey))) {
+        sender() ! message
+      }
+      else
+        error(s"message.invalid.signature: ${message.toLog}")
+
+    // send consensus message with signature
+    case message: ConsensusMessage =>
+      remoteSelect ! SignedConsensusMessage(message, AuthenticationDigitsGenerator.generateMAC(message, sessionKey))
+
+    case message@(_: StartChunkStream | _: DataChunk) => remoteSelect ! UnsignedMessage(message)
+
     case GetSessionKey  => sender() ! id -> sessionKey
   }
 
@@ -49,5 +62,8 @@ object RemoteReplicaActor {
   case class RequestSessionKey(senderId: Long)
 
   case object GetSessionKey
+
+  case class SignedConsensusMessage(message: ConsensusMessage, mac: Mac)
+  case class UnsignedMessage(message: Any)
 
 }

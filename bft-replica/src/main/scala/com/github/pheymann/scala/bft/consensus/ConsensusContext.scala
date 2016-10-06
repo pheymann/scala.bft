@@ -1,16 +1,14 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.Types.{Mac, RequestDigits}
 import com.github.pheymann.scala.bft.model.ClientRequest
 
 case class ConsensusContext(
                             sequenceNumber: Long,
                             view:           Long,
-                            request:        ClientRequest,
-                            requestDigits:  RequestDigits,
-                            requestMacs:    Map[Long, Mac]
+                            request:        ClientRequest
                            ) {
 
-  val toLog = s"$sequenceNumber-$view-${requestDigits.mkString("")}"
+  lazy val toLog        = s"{$sequenceNumber,$view,${request.toLog}}"
+  lazy val toActorName  = s"$sequenceNumber-${view}_${request.toActorName}"
 
 }

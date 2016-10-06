@@ -6,9 +6,8 @@ case class ClientRequest(
                           body:       Array[Byte]
                         ) {
 
-  lazy val toLog: String = {
-    s"{$clientId,$timestamp}"
-  }
+  lazy val toLog        = s"{$clientId,$timestamp}"
+  lazy val toActorName  = s"$clientId-$timestamp"
 
 }
 

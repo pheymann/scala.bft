@@ -10,7 +10,7 @@ class MessageBrokerActorSpec extends BftReplicaSpec {
   "The MessageBroker" should {
     "buffer messages in a queue if forwarding is deactivated" in new WithActorSystem {
       val brokerRef = system.actorOf(Props(new MessageBrokerActor()))
-      val message   = Prepare(0, 0, 0, Array.empty[Byte])
+      val message   = Prepare(0, 0, 0)
 
       within(testDuration) {
         brokerRef ! NewConsensusInstance(self)
@@ -24,7 +24,7 @@ class MessageBrokerActorSpec extends BftReplicaSpec {
 
     "active forwarding if consumer request a message but non is available" in new WithActorSystem {
       val brokerRef = system.actorOf(Props(new MessageBrokerActor()))
-      val message   = Prepare(0, 0, 0, Array.empty[Byte])
+      val message   = Prepare(0, 0, 0)
 
       within(testDuration) {
         brokerRef ! NewConsensusInstance(self)

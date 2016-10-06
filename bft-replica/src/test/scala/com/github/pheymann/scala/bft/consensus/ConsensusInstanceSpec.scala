@@ -1,14 +1,12 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.Types.RequestDigits
 import com.github.pheymann.scala.bft.consensus.CommitRound.Commit
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.PrePrepare
 import com.github.pheymann.scala.bft.consensus.PrepareRound.Prepare
 import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
 import com.github.pheymann.scala.bft.replica.ReplicasMock.{CalledSendMessage, CalledSendRequest}
 import com.github.pheymann.scala.bft.storage.LogStorageMock._
-import com.github.pheymann.scala.bft.util.AuthenticationDigitsGenerator
-import com.github.pheymann.scala.bft.{BftReplicaConfig, BftReplicaSpec, SpecContext, WithActorSystem}
+import com.github.pheymann.scala.bft._
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.Future
@@ -32,7 +30,7 @@ class ConsensusInstanceSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
       within(testDuration * 2) {
         val resultFut = Future(blocking(consensus ? request))
 
-        sendMessages(specContext, AuthenticationDigitsGenerator.generateDigits(request))
+        sendMessages(specContext)
 
         expectMsg(CalledStart)
         expectMsg(CalledAddPrePrepare)
@@ -54,7 +52,7 @@ class ConsensusInstanceSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
       val specContext = new SpecContext(self, 1)
 
       val request         = new ClientRequest(0, 0, Array[Byte](1))
-      val message         = PrePrepare(0, 0, 0, AuthenticationDigitsGenerator.generateDigits(request))
+      val message         = PrePrepare(0, 0, 0)
       val requestDelivery = RequestDelivery(0, 0, request)
 
       import specContext.replicaContext
@@ -64,7 +62,7 @@ class ConsensusInstanceSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
       within(testDuration * 2) {
         val resultFut = Future(blocking(consensus ? (message, requestDelivery)))
 
-        sendMessages(specContext, AuthenticationDigitsGenerator.generateDigits(request))
+        sendMessages(specContext)
 
         expectMsg(CalledStart)
         expectMsg(CalledAddPrePrepare)
@@ -83,8 +81,7 @@ class ConsensusInstanceSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
     "not reach a consensus when not all round conditions are fulfilled" in new WithActorSystem {
       val specContext = new SpecContext(self, 1)
 
-      val request       = new ClientRequest(0, 0, Array[Byte](2))
-      val requestDigits = AuthenticationDigitsGenerator.generateDigits(request)
+      val request = new ClientRequest(0, 0, Array[Byte](2))
 
       import specContext.replicaContext
       import system.dispatcher
@@ -97,8 +94,7 @@ class ConsensusInstanceSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
         specContext.replicaContext.messaging.messageBrokerRef ! Prepare(
           0L,
           specContext.sequenceNumber,
-          specContext.view,
-          requestDigits
+          specContext.view
         )
       }
 
@@ -106,13 +102,12 @@ class ConsensusInstanceSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
     }
   }
 
-  def sendMessages(specContext: SpecContext, requestDigits: RequestDigits) {
+  def sendMessages(specContext: SpecContext) {
     for (index <- 0 until (2 * BftReplicaConfig.expectedFaultyReplicas)) {
       specContext.replicaContext.messaging.messageBrokerRef ! Prepare(
         index,
         specContext.sequenceNumber,
-        specContext.view,
-        requestDigits
+        specContext.view
       )
     }
 
@@ -120,8 +115,7 @@ class ConsensusInstanceSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
       specContext.replicaContext.messaging.messageBrokerRef ! Commit(
         index,
         specContext.sequenceNumber,
-        specContext.view,
-        requestDigits
+        specContext.view
       )
     }
   }

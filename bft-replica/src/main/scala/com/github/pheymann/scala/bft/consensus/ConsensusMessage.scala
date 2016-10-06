@@ -1,22 +1,22 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.Types.{Mac, RequestDigits}
+import com.github.pheymann.scala.bft.model.{ByteArraySerialization, SignableMessage}
 
-trait ConsensusMessage {
+trait ConsensusMessage extends SignableMessage {
+
+  import ByteArraySerialization._
 
   def replicaId:      Long
   def sequenceNumber: Long
   def view:           Long
-  def requestDigits:  RequestDigits
 
-  def requestMac:     Mac
-
-  lazy val toLog = "{%d,%d,[%s]}".format(
+  lazy val toLog = "{%d,%d,%d}[%s]".format(
+    replicaId,
     sequenceNumber,
     view,
-    requestDigits.mkString("")
+    this.getClass.getSimpleName
   )
 
-  def withMac(requestMac: Mac): ConsensusMessage
+  override def toBytes: Array[Byte] = longToBytes(replicaId) ++ longToBytes(sequenceNumber) ++ longToBytes(view)
 
 }

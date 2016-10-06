@@ -15,17 +15,13 @@ trait ConsensusRound extends ConsensusRoundActor {
      */
     message.view == replicas.self.view &&
     /*
-     * message digits == request digits
-     */
-    message.requestDigits.sameElements(consensusContext.requestDigits) &&
-    /*
      * sequence number is between h and H (water marks)
      */
     storage.isWithinWatermarks(message)
   }
 
   private var roundHasStarted = false
-  private var roundIsComplete = false
+  private var roundIsCompleted = false
   private var messageCounter  = 1
 
   override def receive = {
@@ -35,7 +31,7 @@ trait ConsensusRound extends ConsensusRoundActor {
 
       replicas.sendMessage(message)
 
-      if (roundIsComplete) {
+      if (roundIsCompleted) {
         debugQuery("start", "consensus", "reached")
         executeMessage(message)
       }
@@ -43,7 +39,7 @@ trait ConsensusRound extends ConsensusRoundActor {
       sender() ! ConsumeMessage
 
     case message: ConsensusMessage =>
-      if (!roundIsComplete && isValidMessage(message)) {
+      if (!roundIsCompleted && isValidMessage(message)) {
         if (messageCounter == expectedMessages) {
           infoQuery("consensus", "reached")
           messageCounter += 1
@@ -51,7 +47,7 @@ trait ConsensusRound extends ConsensusRoundActor {
           if (roundHasStarted)
             executeMessage(message)
           else
-            roundIsComplete = true
+            roundIsCompleted = true
         }
         else {
           debugQuery("consensus", s"messages: $messageCounter")

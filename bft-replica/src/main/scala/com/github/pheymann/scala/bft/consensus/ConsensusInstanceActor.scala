@@ -22,7 +22,7 @@ class ConsensusInstanceActor()
   protected val commitRound     = createRound(Props(new CommitRound()), "commit")
 
   private def createRound(round: Props, name: String): ActorRef = {
-    context.system.actorOf(round, s"$name-${consensusContext.toLog}")
+    context.system.actorOf(round, s"$name-${consensusContext.toActorName}")
   }
 
   private var _sender: ActorRef = null

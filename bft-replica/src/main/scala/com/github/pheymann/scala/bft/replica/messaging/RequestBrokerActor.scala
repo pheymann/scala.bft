@@ -34,7 +34,7 @@ class RequestBrokerActor(publisherRef: ActorRef) extends Actor with ActorLogging
 
     case request: RequestDelivery =>
       chunkStreamReceiverRefOpt = chunkStreamReceiverRefOpt.fold {
-        log.error(s"request.received.unexpected.request: ${request.toLog}")
+        log.error(s"request.received.unexpected: ${request.toLog}")
         None
       } { receiverRef =>
         log.info(s"request.received: ${request.toLog}")

@@ -3,7 +3,6 @@ package com.github.pheymann.scala.bft.consensus
 import com.github.pheymann.scala.bft.{BftReplicaSpec, SpecContext, WithActorSystem}
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.PrePrepare
 import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
-import com.github.pheymann.scala.bft.util.AuthenticationDigitsGenerator
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent._
@@ -15,7 +14,7 @@ class FollowerConsensusSpec(implicit ee: ExecutionEnv) extends BftReplicaSpec {
       val specContext = new SpecContext(self, 2)
 
       val request = new ClientRequest(0, 0, Array[Byte](0))
-      val message = PrePrepare(0L, specContext.sequenceNumber, specContext.view, AuthenticationDigitsGenerator.generateDigits(request))
+      val message = PrePrepare(0L, specContext.sequenceNumber, specContext.view)
 
       import specContext.replicaContext
 
