@@ -21,3 +21,9 @@ class MessageRouterActor(
   }
 
 }
+
+object MessageRouterActor {
+
+  val name = "message-router"
+
+}

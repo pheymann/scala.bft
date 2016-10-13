@@ -1,8 +1,8 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.consensus.ConsensusRound.StartRound
 import com.github.pheymann.scala.bft.replica.ReplicaContext
+import com.github.pheymann.scala.bft.storage.LogStorageInterfaceActor.AddPrepare
 
 class PrepareRound(
                     implicit
@@ -14,15 +14,15 @@ class PrepareRound(
 
   protected val round = roundName
 
-  protected final val expectedMessages = 2 * BftReplicaConfig.expectedFaultyReplicas
+  protected final val expectedMessages = 2 * replicaContext.config.replicaConfig.expectedFaultyReplicas
 
   protected val message = Prepare(
-    replicas.self.id,
+    replicaContext.replicas.self.id,
     consensusContext.sequenceNumber,
     consensusContext.view
   )
   protected def executeMessage(message: ConsensusMessage) {
-    storage.addPrepare(message)
+    replicaContext.storageRef ! AddPrepare(message)
     sender() ! FinishedPrepare
   }
 

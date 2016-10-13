@@ -1,6 +1,7 @@
 package com.github.pheymann.scala.bft.consensus
 
 import com.github.pheymann.scala.bft.replica.messaging.MessageBrokerActor.ConsumeMessage
+import com.github.pheymann.scala.bft.storage.LogStorageInterfaceActor
 
 trait ConsensusRound extends ConsensusRoundActor {
 
@@ -13,11 +14,11 @@ trait ConsensusRound extends ConsensusRoundActor {
     /*
      * replica has to be in the same view
      */
-    message.view == replicas.self.view &&
+    message.view == replicaContext.replicas.self.view &&
     /*
      * sequence number is between h and H (water marks)
      */
-    storage.isWithinWatermarks(message)
+    LogStorageInterfaceActor.isWithinWatermarks(message)
   }
 
   private var roundHasStarted = false
@@ -29,7 +30,7 @@ trait ConsensusRound extends ConsensusRoundActor {
       infoQuery("start")
       roundHasStarted = true
 
-      replicas.sendMessage(message)
+      replicaContext.replicas.sendMessage(message)
 
       if (roundIsCompleted) {
         debugQuery("start", "consensus", "reached")

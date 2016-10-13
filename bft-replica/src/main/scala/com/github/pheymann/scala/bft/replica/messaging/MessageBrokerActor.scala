@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorRef}
 import com.github.pheymann.scala.bft.consensus.ConsensusMessage
 import com.github.pheymann.scala.bft.util.ActorLoggingUtil
 
-class MessageBrokerActor extends Actor with ActorLoggingUtil {
+class MessageBrokerActor() extends Actor with ActorLoggingUtil {
 
   import MessageBrokerActor._
 

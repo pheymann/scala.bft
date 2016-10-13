@@ -2,12 +2,12 @@ package com.github.pheymann.scala.bft.consensus
 
 import akka.pattern.ask
 import akka.actor.{ActorRef, ActorSystem, Props}
-import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.consensus.ConsensusInstanceActor.FinishedConsensus
 import com.github.pheymann.scala.bft.consensus.PrePrepareRound.{JoinConsensus, PrePrepare, StartConsensus}
 import com.github.pheymann.scala.bft.model.{ClientRequest, RequestDelivery}
 import com.github.pheymann.scala.bft.replica.ReplicaContext
 import com.github.pheymann.scala.bft.replica.messaging.MessageBrokerActor.NewConsensusInstance
+import com.github.pheymann.scala.bft.storage.LogStorageInterfaceActor
 import com.github.pheymann.scala.bft.util.LoggingUtil
 
 import scala.concurrent.{Await, Future}
@@ -34,7 +34,7 @@ abstract class ConsensusInstance()
     replicaContext.messaging.messageBrokerRef ! NewConsensusInstance(instanceRef)
 
     try {
-      Await.result(startConsensus(instanceRef), BftReplicaConfig.consensusDuration) match {
+      Await.result(startConsensus(instanceRef), replicaContext.config.replicaConfig.consensusDuration) match {
         case FinishedConsensus => true
         case other =>
           error(s"${logAborted(request)}: $other")
@@ -63,7 +63,9 @@ abstract class ConsensusInstance()
 case class LeaderConsensus()
                           (implicit system: ActorSystem, replicaContext: ReplicaContext) extends ConsensusInstance {
 
-  import com.github.pheymann.scala.bft.BftReplicaConfig.consensusTimeout
+  private val config = replicaContext.config
+
+  import config.replicaConfig.consensusTimeout
 
   override protected def startConsensus(instanceRef: ActorRef) = instanceRef ? StartConsensus
 
@@ -74,7 +76,9 @@ case class LeaderConsensus()
 case class FollowerConsensus()
                             (implicit system: ActorSystem, replicaContext: ReplicaContext) extends ConsensusInstance {
 
-  import com.github.pheymann.scala.bft.BftReplicaConfig.consensusTimeout
+  private val config = replicaContext.config
+
+  import config.replicaConfig.consensusTimeout
 
   override protected def startConsensus(instanceRef: ActorRef) = instanceRef ? JoinConsensus
 
@@ -82,7 +86,7 @@ case class FollowerConsensus()
     val isValid = {
       message.sequenceNumber == requestDelivery.sequenceNumber &&
         message.view == requestDelivery.view &&
-        replicaContext.storage.hasAcceptedOrUnknown(message)
+        LogStorageInterfaceActor.hasAcceptedOrUnknown(message)
     }
 
     if (isValid)

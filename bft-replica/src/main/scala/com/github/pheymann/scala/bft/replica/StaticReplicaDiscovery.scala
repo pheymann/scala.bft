@@ -1,19 +1,16 @@
 package com.github.pheymann.scala.bft.replica
 
-import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.util.LoggingUtil
 import com.typesafe.config.{Config, ConfigFactory}
 
-import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
+import scala.collection.JavaConversions._
 
 object StaticReplicaDiscovery extends LoggingUtil {
 
-  lazy val replicaData = loadReplicaData(ConfigFactory.load(BftReplicaConfig.replicaHostFile))
-
-  private[replica] def loadReplicaData(config: Config): Seq[ReplicaData] = {
+  private[replica] def loadReplicaData(config: StaticReplicaDiscoveryConfig): Seq[ReplicaData] = {
     try {
-      config.getConfigList("replicas").toList.map { entry =>
+      config.replicas.map { entry =>
         ReplicaData(entry.getLong("id"), entry.getString("host"), entry.getInt("port"))
       }
     }
@@ -22,6 +19,22 @@ object StaticReplicaDiscovery extends LoggingUtil {
         error(cause, "failed to load replica data")
         throw cause
     }
+  }
+
+}
+
+case class StaticReplicaDiscoveryConfig(replicas: List[Config])
+
+object StaticReplicaDiscoveryConfig {
+
+  val config = StaticReplicaDiscoveryConfig(t())
+
+  def t() = {
+    val t = ConfigFactory.load("replica-hosts")
+    println("++++++++ " + t)
+    val t2: List[Config] = t.getConfigList("replicas").toList
+    println("++++++++++" + t2)
+    t2
   }
 
 }

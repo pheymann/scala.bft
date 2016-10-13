@@ -1,13 +1,13 @@
 package com.github.pheymann.scala.bft.replica.messaging
 
 import akka.actor.ActorRef
-import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.model._
 
 object ChunkDataStreamSender {
 
-  def send(replicaId: Long, delivery: RequestDelivery, remoteReplicaRefs: Seq[ActorRef]) {
-    val chunks = generateChunks(delivery)
+  def send(replicaId: Long, delivery: RequestDelivery, remoteReplicaRefs: Seq[ActorRef])
+          (chunkSize: Int): Unit = {
+    val chunks = generateChunks(delivery)(chunkSize)
 
     for (remoteReplicaRef <- remoteReplicaRefs)
       remoteReplicaRef ! StartChunkStream(replicaId, chunks.length)
@@ -20,10 +20,11 @@ object ChunkDataStreamSender {
     }
   }
 
-  private[messaging] def generateChunks(delivery: RequestDelivery): Seq[Array[Byte]] = {
+  private[messaging] def generateChunks(delivery: RequestDelivery)
+                                       (chunkSize: Int): Seq[Array[Byte]] = {
     RequestDelivery
       .marshall(delivery)
-      .grouped(BftReplicaConfig.messageChunkSize)
+      .grouped(chunkSize)
       .toSeq
   }
 

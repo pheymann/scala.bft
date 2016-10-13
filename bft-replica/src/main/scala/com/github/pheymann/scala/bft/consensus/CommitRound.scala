@@ -1,8 +1,8 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.consensus.ConsensusRound.StartRound
 import com.github.pheymann.scala.bft.replica.ReplicaContext
+import com.github.pheymann.scala.bft.storage.LogStorageInterfaceActor.{AddCommit, FinishForRequest}
 
 class CommitRound(
                   implicit
@@ -14,16 +14,16 @@ class CommitRound(
 
   protected val round = roundName
 
-  protected final val expectedMessages = 2 * BftReplicaConfig.expectedFaultyReplicas + 1
+  protected final val expectedMessages = 2 * replicaContext.config.replicaConfig.expectedFaultyReplicas + 1
 
   protected val message = Commit(
-    replicas.self.id,
+    replicaContext.replicas.self.id,
     consensusContext.sequenceNumber,
     consensusContext.view
   )
   protected def executeMessage(message: ConsensusMessage) {
-    storage.addCommit(message)
-    storage.finishForRequest(message)
+    replicaContext.storageRef ! AddCommit(message)
+    replicaContext.storageRef ! FinishForRequest(message)
     sender() ! FinishedCommit
   }
 

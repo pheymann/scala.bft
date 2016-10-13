@@ -1,32 +1,42 @@
 package com.github.pheymann.scala.bft.replica
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.ActorRef
+import com.github.pheymann.scala.bft.Configuration
 import com.github.pheymann.scala.bft.replica.messaging.Messaging
-import com.github.pheymann.scala.bft.storage.LogStorage
 
 trait ReplicaContext {
+
+  def config: Configuration
 
   def messaging: Messaging
 
   def replicas: Replicas
-  def storage:  LogStorage
+
+  def storageRef:  ActorRef
 
 }
 
 object ReplicaContext {
 
-  def apply(publisherRef: ActorRef, system: ActorSystem): ReplicaContext = {
-    new ReplicaContextExtension(publisherRef)(system)
+  def apply(
+             config: Configuration,
+             messaging: Messaging,
+             replicas: Replicas,
+             storageRef: ActorRef
+           ): ReplicaContext = {
+    ReplicaContextExtension(config, messaging, replicas, storageRef)
   }
 
 }
 
-class ReplicaContextExtension(publisherRef: ActorRef)
-                             (implicit system: ActorSystem) extends ReplicaContext {
+case class ReplicaContextExtension(
+                                     config: Configuration,
+                                     messaging: Messaging,
+                                     replicas: Replicas,
+                                     storageRef: ActorRef
+                                   ) extends ReplicaContext
 
-  override val messaging = Messaging(publisherRef, system)
-
-  override val replicas  = Replicas(system)
-  override val storage   = LogStorage(system)
-
-}
+//val config: Configuration  = Configuration(),
+//val messaging: Messaging   = Messaging(publisherRef, system),
+//val replicas: Replicas     = Replicas(messaging.router, config),
+//val storageRef: ActorRef   = system.actorOf(Props(new LogStorageInterfaceActor(null)), LogStorageInterfaceActor.name)

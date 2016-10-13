@@ -2,7 +2,6 @@ package com.github.pheymann.scala.bft.util
 
 import java.security.{MessageDigest, PrivateKey, Signature}
 
-import com.github.pheymann.scala.bft.BftReplicaConfig
 import com.github.pheymann.scala.bft.Types.{DigitalSignature, Mac, RequestDigits, SessionKey}
 import com.github.pheymann.scala.bft.model.{ClientRequest, SignableMessage}
 
@@ -26,8 +25,9 @@ object AuthenticationDigitsGenerator {
     generateMAC(generateDigits(message), sessionKey)
   }
 
-  def generateDigitalSignature(body: Array[Byte], privateKey: PrivateKey): DigitalSignature = {
-    val signature = Signature.getInstance(BftReplicaConfig.signatureStrategy)
+  def generateDigitalSignature(body: Array[Byte], privateKey: PrivateKey)
+                              (strategy: String): DigitalSignature = {
+    val signature = Signature.getInstance(strategy)
 
     signature.initSign(privateKey)
     signature.update(body)

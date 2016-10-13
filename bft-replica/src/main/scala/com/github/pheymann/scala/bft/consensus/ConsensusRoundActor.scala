@@ -12,7 +12,4 @@ trait ConsensusRoundActor extends Actor
 
   protected def message: ConsensusMessage
 
-  protected val replicas  = replicaContext.replicas
-  protected val storage   = replicaContext.storage
-
 }

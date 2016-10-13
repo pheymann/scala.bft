@@ -1,6 +1,7 @@
 package com.github.pheymann.scala.bft.consensus
 
 import com.github.pheymann.scala.bft.replica.ReplicaContext
+import com.github.pheymann.scala.bft.storage.LogStorageInterfaceActor.{AddPrePrepare, StartForRequest}
 
 class PrePrepareRound(
                        implicit
@@ -13,18 +14,18 @@ class PrePrepareRound(
   protected val round = roundName
 
   protected val message = PrePrepare(
-    replicas.self.id,
+    replicaContext.replicas.self.id,
     consensusContext.sequenceNumber,
     consensusContext.view
   )
 
-  storage.startForRequest(consensusContext.request)
-  storage.addPrePrepare(message)
+  replicaContext.storageRef ! StartForRequest(consensusContext.request)
+  replicaContext.storageRef ! AddPrePrepare(message)
 
   override def receive = {
     case StartConsensus =>
-      replicas.sendMessage(message)
-      replicas.sendRequest(consensusContext.request)
+      replicaContext.replicas.sendMessage(message)
+      replicaContext.replicas.sendRequest(consensusContext.request)
 
       sender() ! FinishedPrePrepare
 
