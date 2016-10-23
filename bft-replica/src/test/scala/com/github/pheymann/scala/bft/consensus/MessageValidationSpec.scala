@@ -9,7 +9,7 @@ class MessageValidationSpec extends ScalaBftSpec {
   "Received consensus messages" should {
     """have the same view as the receiver replica and a sequence number within
       |defined watermarks""".stripMargin in new WithLogger("message-validation-spec") {
-      implicit val config = ReplicaConfig(0, 0, 1, null)
+      implicit val config = newConfig(0, 0, 1)
 
       val state = ConsensusState(0, 0, 0, 0, 1, null)
 
@@ -23,7 +23,7 @@ class MessageValidationSpec extends ScalaBftSpec {
     }
 
     "set the state to prepared := true if 2f messages are received" in new WithLogger("message-validation-spec") {
-      implicit val config = ReplicaConfig(0, 0, 1, null)
+      implicit val config = newConfig(0, 0, 1)
 
       val state = ConsensusState(0, 0, 0, 0, 1, null)
 
@@ -41,7 +41,7 @@ class MessageValidationSpec extends ScalaBftSpec {
     }
 
     "set the state to commited := true if 2f + 1 messages are received" in new WithLogger("message-validation-spec") {
-      implicit val config = ReplicaConfig(0, 0, 1, null)
+      implicit val config = newConfig(0, 0, 1)
 
       val state = ConsensusState(0, 0, 0, 0, 1, null)
 

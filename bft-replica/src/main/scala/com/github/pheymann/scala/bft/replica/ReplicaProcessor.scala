@@ -3,7 +3,6 @@ package com.github.pheymann.scala.bft.replica
 import cats.{Id, ~>}
 import com.github.pheymann.scala.bft.consensus.{SendCommitMessage, ValidationAction, ValidationProcessor}
 import com.github.pheymann.scala.bft.storage.{StorageAction, StorageProcessor}
-import com.github.pheymann.scala.bft.util.AuthenticationGeneratorT
 import org.slf4j.Logger
 
 class ReplicaProcessor(implicit config: ReplicaConfig, log: Logger) extends (ReplicaAction ~> Id) {

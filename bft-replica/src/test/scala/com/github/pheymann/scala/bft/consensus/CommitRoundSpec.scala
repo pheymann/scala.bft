@@ -32,7 +32,7 @@ class CommitRoundSpec extends ScalaBftSpec {
   "The commit round" should {
     """accept the commit iff it receives 2f + 1 messages. Acceptance results in execution of
       |the request and storing the message in the log""".stripMargin in new WithLogger("commit-round-spec") {
-      implicit val config = ReplicaConfig(0, 0, 1, null) // expect 3 messages
+      implicit val config = newConfig(0, 0, 1) // expect 3 messages
 
       val processor = new SpecProcessor()
       val state     = ConsensusState(0, 0, 0, 0, 1, ClientRequest(0, 0, Array.empty))
@@ -43,7 +43,7 @@ class CommitRoundSpec extends ScalaBftSpec {
     }
 
     "invalid messages should be ignored" in new WithLogger("commit-round-spec") {
-      implicit val config = ReplicaConfig(0, 0, 1, null)
+      implicit val config = newConfig(0, 0, 1)
 
       val processor = new SpecProcessor()
       val state     = ConsensusState(0, 0, 0, 0, 1, ClientRequest(0, 0, Array.empty))

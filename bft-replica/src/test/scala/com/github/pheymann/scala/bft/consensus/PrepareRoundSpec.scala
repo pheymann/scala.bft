@@ -32,7 +32,7 @@ class PrepareRoundSpec extends ScalaBftSpec {
   "The prepare round" should {
     """accepts the prepare iff it receives 2f messages. Acceptance results in transmission of
       |a commit message and storing the prepare message in the log""".stripMargin in new WithLogger("prepare-round-spec") {
-      implicit val config = ReplicaConfig(0, 0, 1, null) // expect 2 messages
+      implicit val config = newConfig(0, 0, 1) // expect 2 messages
 
       val processor = new SpecProcessor()
       val state     = ConsensusState(0, 0, 0, 0, 1, ClientRequest(0, 0, Array.empty))
@@ -42,7 +42,7 @@ class PrepareRoundSpec extends ScalaBftSpec {
     }
 
     "invalid messages should be ignored" in new WithLogger("prepare-round-spec") {
-      implicit val config = ReplicaConfig(0, 0, 1, null)
+      implicit val config = newConfig(0, 0, 1)
 
       val processor = new SpecProcessor()
       val state     = ConsensusState(0, 0, 0, 0, 1, ClientRequest(0, 0, Array.empty))

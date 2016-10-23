@@ -1,5 +1,7 @@
 package com.github.pheymann.scala.bft.replica
 
+import java.security.MessageDigest
+
 import akka.util.Timeout
 
 import scala.concurrent.duration.FiniteDuration
@@ -9,7 +11,9 @@ final case class ReplicaConfig(
                                 view:           Int,
                                 expectedFaults: Int,
 
-                                keyRequestDuration: FiniteDuration
+                                keyRequestDuration: FiniteDuration,
+
+                                digestStrategy: String
                               ) {
 
   import ReplicaConfig._
@@ -18,6 +22,8 @@ final case class ReplicaConfig(
   val expectedCommits   = calculateExpectedCommits(expectedFaults)
 
   implicit val keyRequestTimeout = Timeout(keyRequestDuration)
+
+  val digestGenerator = MessageDigest.getInstance(digestStrategy)
 
 }
 

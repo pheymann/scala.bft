@@ -1,27 +1,30 @@
 package com.github.pheymann.scala.bft.util
 
-import java.security.{MessageDigest, PrivateKey, Signature}
+import java.security.{PrivateKey, Signature}
 
 import com.github.pheymann.scala.bft.{DigitalSignature, Mac, RequestDigest, SessionKey}
 import com.github.pheymann.scala.bft.messaging.{ClientRequest, SignableMessage}
+import com.github.pheymann.scala.bft.replica.ReplicaConfig
 
 object AuthenticationGenerator {
 
-  private val digestGenerator = MessageDigest.getInstance("MD5")
-
-  def generateDigest(request: ClientRequest): RequestDigest = {
-    digestGenerator.digest(request.body)
+  def generateDigest(request: ClientRequest)
+                    (implicit config: ReplicaConfig): RequestDigest = {
+    config.digestGenerator.digest(request.body)
   }
 
-  def generateDigest(message: SignableMessage): RequestDigest = {
-    digestGenerator.digest(message.toBytes)
+  def generateDigest(message: SignableMessage)
+                    (implicit config: ReplicaConfig): RequestDigest = {
+    config.digestGenerator.digest(message.toBytes)
   }
 
-  def generateMAC(digits: RequestDigest, sessionKey: SessionKey): Mac = {
-    digestGenerator.digest(digits ++ sessionKey).slice(0, 10)
+  def generateMAC(digits: RequestDigest, sessionKey: SessionKey)
+                 (implicit config: ReplicaConfig): Mac = {
+    config.digestGenerator.digest(digits ++ sessionKey).slice(0, 10)
   }
 
-  def generateMAC(message: SignableMessage, sessionKey: SessionKey): Mac = {
+  def generateMAC(message: SignableMessage, sessionKey: SessionKey)
+                 (implicit config: ReplicaConfig): Mac = {
     generateMAC(generateDigest(message), sessionKey)
   }
 
