@@ -2,7 +2,7 @@ package com.github.pheymann.scala.bft.messaging
 
 import com.github.pheymann.scala.bft._
 
-sealed trait ConsensusMessage {
+sealed trait ConsensusMessage extends SignableMessage {
 
   def replicaId:      Int
   def view:           Int
@@ -13,6 +13,12 @@ sealed trait ConsensusMessage {
     view,
     sequenceNumber
   )
+
+  override def toBytes: Array[Byte] = {
+    import com.github.pheymann.scala.bft.util.Serialization._
+
+    intToBytes(replicaId) ++ intToBytes(view) ++ longToBytes(sequenceNumber)
+  }
 
 }
 
