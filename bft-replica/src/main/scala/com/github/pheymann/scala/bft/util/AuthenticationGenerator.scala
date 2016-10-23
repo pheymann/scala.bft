@@ -3,14 +3,14 @@ package com.github.pheymann.scala.bft.util
 import java.security.{PrivateKey, Signature}
 
 import com.github.pheymann.scala.bft.{DigitalSignature, Mac, RequestDigest, SessionKey}
-import com.github.pheymann.scala.bft.messaging.{ClientRequest, SignableMessage}
+import com.github.pheymann.scala.bft.messaging.{RequestChunk, SignableMessage}
 import com.github.pheymann.scala.bft.replica.ReplicaConfig
 
 object AuthenticationGenerator {
 
-  def generateDigest(request: ClientRequest)
+  def generateDigest(chunk: RequestChunk)
                     (implicit config: ReplicaConfig): RequestDigest = {
-    config.digestGenerator.digest(request.body)
+    config.digestGenerator.digest(chunk.chunk)
   }
 
   def generateDigest(message: SignableMessage)
