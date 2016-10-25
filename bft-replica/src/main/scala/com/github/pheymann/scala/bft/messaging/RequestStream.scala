@@ -13,17 +13,19 @@ object RequestStream {
 
   def collectChunks(chunk: RequestChunk, state: RequestStreamState): RequestStreamState = {
     state.chunks.enqueue(chunk)
-    state.receivedChunks  += 1
-    state.isComplete      = state.expectedChunks == state.receivedChunks
+    state.isComplete = state.expectedChunks == state.chunks.length
     state
+  }
+
+  def generateRequest(state: RequestStreamState): RequestDelivery = {
+    RequestDelivery.fromBytes(state.chunks.foldLeft(Array.empty[Byte])(_ ++ _.chunk))
   }
 
 }
 
 final case class RequestStreamState(expectedChunks: Int) {
 
-  var isComplete      = false
-  var receivedChunks  = 0
+  var isComplete = false
 
   val chunks = collection.mutable.Queue[RequestChunk]()
 
