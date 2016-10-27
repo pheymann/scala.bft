@@ -15,10 +15,7 @@ class CommitRoundSpec extends ScalaBftSpec {
     override def apply[A](action: ReplicaAction[A]): Id[A] = action match {
       case validate: ValidationAction[A]  => ValidationProcessor(validate)
 
-      case StoreCommit(_, state) =>
-        ScalaBftLogger.infoLog("spec: received command - store commit")
-        state.isCommited = true
-        state
+      case StoreCommit(_) => ScalaBftLogger.infoLog("spec: received command - store commit")
 
       case ExecuteRequest(state) =>
         ScalaBftLogger.infoLog("spec: received command - execute request")
@@ -35,7 +32,7 @@ class CommitRoundSpec extends ScalaBftSpec {
       implicit val config = newConfig(0, 0, 1) // expect 3 messages
 
       val processor = new SpecProcessor()
-      val state     = ConsensusState(0, 0, 0, 0, 1, ClientRequest(0, 0, Array.empty))
+      val state     = ConsensusState(0, 0, 0, 0, 1)
 
       CommitRound.processCommit(CommitMessage(1, 0, 0), state).foldMap(processor).isCommited should beFalse
       CommitRound.processCommit(CommitMessage(1, 0, 0), state).foldMap(processor).isCommited should beFalse
@@ -46,7 +43,7 @@ class CommitRoundSpec extends ScalaBftSpec {
       implicit val config = newConfig(0, 0, 1)
 
       val processor = new SpecProcessor()
-      val state     = ConsensusState(0, 0, 0, 0, 1, ClientRequest(0, 0, Array.empty))
+      val state     = ConsensusState(0, 0, 0, 0, 1)
 
       CommitRound.processCommit(CommitMessage(1, 1, 0), state).foldMap(processor).receivedCommits should beEqualTo(0)
     }

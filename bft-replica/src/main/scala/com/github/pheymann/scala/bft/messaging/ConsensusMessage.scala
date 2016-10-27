@@ -22,6 +22,7 @@ sealed trait ConsensusMessage extends SignableMessage {
 
 }
 
+final case class PrePrepareMessage(replicaId: Int, view: Int, sequenceNumber: Long) extends ConsensusMessage
 final case class PrepareMessage(replicaId: Int, view: Int, sequenceNumber: Long)  extends ConsensusMessage
 final case class CommitMessage(replicaId: Int, view: Int, sequenceNumber: Long)   extends ConsensusMessage
 

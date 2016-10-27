@@ -2,18 +2,17 @@ package com.github.pheymann.scala.bft.storage
 
 import cats.free.Free
 import com.github.pheymann.scala.bft.consensus.ConsensusState
-import com.github.pheymann.scala.bft.messaging.{ClientRequest, CommitMessage, ConsensusMessage}
+import com.github.pheymann.scala.bft.messaging._
 import com.github.pheymann.scala.bft.replica.ReplicaAction
 
 sealed trait StorageAction[A] extends ReplicaAction[A]
 
 final case class StorePrePrepare(
-                                  request: ClientRequest,
-                                  message: ConsensusMessage,
-                                  state:   ConsensusState
-                                )  extends StorageAction[ConsensusState]
-final case class StorePrepare(message: ConsensusMessage, state: ConsensusState) extends StorageAction[ConsensusState]
-final case class StoreCommit(message: CommitMessage, state: ConsensusState)     extends StorageAction[ConsensusState]
+                                  message: PrePrepareMessage,
+                                  request: ClientRequest
+                                )  extends StorageAction[Unit]
+final case class StorePrepare(message: PrepareMessage) extends StorageAction[Unit]
+final case class StoreCommit(message: CommitMessage)   extends StorageAction[Unit]
 
 object StorageLifting {
 

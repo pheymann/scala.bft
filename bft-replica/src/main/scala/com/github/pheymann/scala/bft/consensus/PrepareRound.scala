@@ -13,17 +13,17 @@ object PrepareRound {
 
   def processPrepare(message: PrepareMessage, state: ConsensusState): Free[ReplicaAction, ConsensusState] = {
     for {
-      validatedState <- validate(ValidatePrepare(message, state))
-      sentState <- {
+      validatedState  <- validate(ValidatePrepare(message, state))
+      _               <- {
         if (validatedState.isPrepared)
           for {
-            storedState <- store(StorePrepare(message, state))
-            sentState   <- process(SendCommitMessage(storedState))
-          } yield sentState
+            _ <- store(StorePrepare(message))
+            _ <- process(SendCommitMessage(validatedState))
+          } yield validatedState
         else
           process(Continue(validatedState))
       }
-    } yield sentState
+    } yield validatedState
   }
 
 }

@@ -2,7 +2,7 @@ package com.github.pheymann.scala.bft.consensus
 
 import cats.free.Free
 import com.github.pheymann.scala.bft.messaging.CommitMessage
-import com.github.pheymann.scala.bft.replica.{ExecuteRequest, ReplicaAction}
+import com.github.pheymann.scala.bft.replica.{ClientResponse, ExecuteRequest, ReplicaAction}
 import com.github.pheymann.scala.bft.storage.StoreCommit
 
 object CommitRound {
@@ -17,9 +17,9 @@ object CommitRound {
       processedState <- {
         if (validatedState.isCommited)
           for {
-            storedState     <- store(StoreCommit(message, state))
-            processedState  <- process(ExecuteRequest(storedState))
-          } yield processedState
+            _             <- store(StoreCommit(message))
+            responseState <- process(ExecuteRequest(validatedState))
+          } yield responseState
         else
           process(Continue(validatedState))
       }

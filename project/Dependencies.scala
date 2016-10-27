@@ -4,10 +4,11 @@ trait Versions {
 
   val akkaVersion = "2.4.8"
 
-  val specs2Verison   = "3.8.4"
-  val logbackVersion  = "1.1.7"
+  val specs2Verison = "3.8.4"
 
   val catsVersion = "0.7.2"
+
+  val logbackVersion  = "1.1.7"
 
 }
 

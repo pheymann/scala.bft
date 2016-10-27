@@ -11,7 +11,7 @@ class MessageValidationSpec extends ScalaBftSpec {
       |defined watermarks""".stripMargin in new WithLogger("message-validation-spec") {
       implicit val config = newConfig(0, 0, 1)
 
-      val state = ConsensusState(0, 0, 0, 0, 1, null)
+      val state = ConsensusState(0, 0, 0, 0, 1)
 
       // valid messages
       MessageValidation.validateMessage(CommitMessage(1, 0, 0), state) should beTrue
@@ -25,7 +25,7 @@ class MessageValidationSpec extends ScalaBftSpec {
     "set the state to prepared := true if 2f messages are received" in new WithLogger("message-validation-spec") {
       implicit val config = newConfig(0, 0, 1)
 
-      val state = ConsensusState(0, 0, 0, 0, 1, null)
+      val state = ConsensusState(0, 0, 0, 0, 1)
 
       def checkState(state: ConsensusState)(isConsensus: Boolean, receivedMessages: Int) = {
         state.isPrepared should beEqualTo(isConsensus)
@@ -43,7 +43,7 @@ class MessageValidationSpec extends ScalaBftSpec {
     "set the state to commited := true if 2f + 1 messages are received" in new WithLogger("message-validation-spec") {
       implicit val config = newConfig(0, 0, 1)
 
-      val state = ConsensusState(0, 0, 0, 0, 1, null)
+      val state = ConsensusState(0, 0, 0, 0, 1)
 
       def checkState(state: ConsensusState)(isConsensus: Boolean, receivedMessages: Int) = {
         state.isCommited should beEqualTo(isConsensus)

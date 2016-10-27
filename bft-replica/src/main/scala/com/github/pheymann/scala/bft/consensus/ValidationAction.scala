@@ -4,7 +4,6 @@ import cats.free.Free
 import com.github.pheymann.scala.bft.messaging.ConsensusMessage
 import com.github.pheymann.scala.bft.replica.ReplicaAction
 
-
 sealed trait ValidationAction[A] extends ReplicaAction[A]
 
 final case class ValidatePrepare(message: ConsensusMessage, state: ConsensusState)  extends ValidationAction[ConsensusState]

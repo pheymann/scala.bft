@@ -1,16 +1,12 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.messaging.ClientRequest
-
 case class ConsensusState(
                             replicaId:      Int,
                             view:           Int,
                             sequenceNumber: Long,
 
                             lowWatermark:   Long,
-                            highWatermark:  Long,
-
-                            request:        ClientRequest
+                            highWatermark:  Long
                          ) {
 
   var isPrePrepared = false

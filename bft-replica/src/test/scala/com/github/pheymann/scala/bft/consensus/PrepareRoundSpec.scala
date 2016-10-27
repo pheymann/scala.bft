@@ -15,14 +15,8 @@ class PrepareRoundSpec extends ScalaBftSpec {
     override def apply[A](action: ReplicaAction[A]): Id[A] = action match {
       case validate: ValidationAction[A]  => ValidationProcessor(validate)
 
-      case StorePrepare(_, state) =>
-        ScalaBftLogger.infoLog("spec: received command - store commit")
-        state.isPrepared = true
-        state
-
-      case SendCommitMessage(state) =>
-        ScalaBftLogger.infoLog("spec: received command - send commit message")
-        state
+      case StorePrepare(_)          => ScalaBftLogger.infoLog("spec: received command - store commit")
+      case SendCommitMessage(state) => ScalaBftLogger.infoLog("spec: received command - send commit message")
 
       case Continue(state) => state
     }
@@ -35,7 +29,7 @@ class PrepareRoundSpec extends ScalaBftSpec {
       implicit val config = newConfig(0, 0, 1) // expect 2 messages
 
       val processor = new SpecProcessor()
-      val state     = ConsensusState(0, 0, 0, 0, 1, ClientRequest(0, 0, Array.empty))
+      val state     = ConsensusState(0, 0, 0, 0, 1)
 
       PrepareRound.processPrepare(PrepareMessage(1, 0, 0), state).foldMap(processor).isPrepared should beFalse
       PrepareRound.processPrepare(PrepareMessage(1, 0, 0), state).foldMap(processor).isPrepared should beTrue
@@ -45,7 +39,7 @@ class PrepareRoundSpec extends ScalaBftSpec {
       implicit val config = newConfig(0, 0, 1)
 
       val processor = new SpecProcessor()
-      val state     = ConsensusState(0, 0, 0, 0, 1, ClientRequest(0, 0, Array.empty))
+      val state     = ConsensusState(0, 0, 0, 0, 1)
 
       PrepareRound.processPrepare(PrepareMessage(1, 1, 0), state).foldMap(processor).receivedPrepares should beEqualTo(0)
     }
