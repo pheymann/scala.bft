@@ -6,7 +6,6 @@ lazy val commonSettings = Seq(
 lazy val `scala-bft` = project.in(file("."))
   .aggregate(`scala-bft-replica`)
 
-
 lazy val `scala-bft-replica` = project.in(file("bft-replica"))
   .settings(commonSettings: _*)
   .settings(

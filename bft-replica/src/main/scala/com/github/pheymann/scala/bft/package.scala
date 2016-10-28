@@ -2,16 +2,10 @@ package com.github.pheymann.scala
 
 package object bft {
 
-  object Types {
+  type SessionKey     = Array[Byte]
+  type Mac            = Array[Byte]
+  type RequestDigest  = Array[Byte]
 
-    type RequestDigits  = Array[Byte]
-    type Mac            = Array[Byte]
-    type SessionKey     = Array[Byte]
-
-    type DigitalSignature = Array[Byte]
-
-    final val EmptyMac  = Array.empty[Byte]
-
-  }
+  type DigitalSignature = Array[Byte]
 
 }

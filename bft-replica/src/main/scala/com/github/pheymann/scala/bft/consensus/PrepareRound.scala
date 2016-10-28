@@ -1,44 +1,27 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.consensus.ConsensusRound.StartRound
-import com.github.pheymann.scala.bft.replica.ReplicaContext
-import com.github.pheymann.scala.bft.storage.LogStorageInterfaceActor.AddPrepare
-
-class PrepareRound(
-                    implicit
-                    val consensusContext: ConsensusContext,
-                    val replicaContext:   ReplicaContext
-                  ) extends ConsensusRound {
-
-  import PrepareRound._
-
-  protected val round = roundName
-
-  protected final val expectedMessages = 2 * replicaContext.config.replicaConfig.expectedFaultyReplicas
-
-  protected val message = Prepare(
-    replicaContext.replicas.self.id,
-    consensusContext.sequenceNumber,
-    consensusContext.view
-  )
-  protected def executeMessage(message: ConsensusMessage) {
-    replicaContext.storageRef ! AddPrepare(message)
-    sender() ! FinishedPrepare
-  }
-
-}
+import cats.free.Free
+import com.github.pheymann.scala.bft.messaging.PrepareMessage
+import com.github.pheymann.scala.bft.replica.ReplicaAction
+import com.github.pheymann.scala.bft.storage.StorePrepare
 
 object PrepareRound {
 
-  private val roundName = "prepare"
+  import com.github.pheymann.scala.bft.replica.ReplicaLifting._
 
-  case object StartPrepare extends StartRound
-  case object FinishedPrepare
-
-  case class Prepare(
-                      replicaId:      Long,
-                      sequenceNumber: Long,
-                      view:           Long
-                    ) extends ConsensusMessage
+  def processPrepare(message: PrepareMessage, state: ConsensusState): Free[ReplicaAction, ConsensusState] = {
+    for {
+      validatedState  <- process(ValidatePrepare(message, state))
+      _               <- {
+        if (validatedState.isPrepared)
+          for {
+            _ <- process(StorePrepare(message))
+            _ <- process(SendCommitMessage(validatedState))
+          } yield validatedState
+        else
+          assign(validatedState)
+      }
+    } yield validatedState
+  }
 
 }
