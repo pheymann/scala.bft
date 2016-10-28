@@ -3,12 +3,15 @@ package com.github.pheymann.scala.bft.consensus
 import com.github.pheymann.scala.bft.ScalaBftSpec
 import com.github.pheymann.scala.bft.messaging.{CommitMessage, PrepareMessage}
 import com.github.pheymann.scala.bft.replica.ReplicaConfig
+import org.slf4j.LoggerFactory
 
 class MessageValidationSpec extends ScalaBftSpec {
 
+  implicit val specLog = LoggerFactory.getLogger(classOf[MessageValidationSpec])
+
   "Received consensus messages" should {
     """have the same view as the receiver replica and a sequence number within
-      |defined watermarks""".stripMargin in new WithLogger("message-validation-spec") {
+      |defined watermarks""".stripMargin in {
       implicit val config = newConfig(0, 0, 1)
 
       val state = ConsensusState(0, 0, 0, 0, 1)
@@ -22,7 +25,7 @@ class MessageValidationSpec extends ScalaBftSpec {
       MessageValidation.validateMessage(CommitMessage(1, 1, 0), state) should beFalse
     }
 
-    "set the state to prepared := true if 2f messages are received" in new WithLogger("message-validation-spec") {
+    "set the state to prepared := true if 2f messages are received" in {
       implicit val config = newConfig(0, 0, 1)
 
       val state = ConsensusState(0, 0, 0, 0, 1)
@@ -40,7 +43,7 @@ class MessageValidationSpec extends ScalaBftSpec {
       checkState(MessageValidation.validatePrepare(PrepareMessage(1, 0, 0), state))(true, 2)
     }
 
-    "set the state to commited := true if 2f + 1 messages are received" in new WithLogger("message-validation-spec") {
+    "set the state to commited := true if 2f + 1 messages are received" in {
       implicit val config = newConfig(0, 0, 1)
 
       val state = ConsensusState(0, 0, 0, 0, 1)

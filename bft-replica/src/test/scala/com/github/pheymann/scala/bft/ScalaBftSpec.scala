@@ -14,12 +14,4 @@ trait ScalaBftSpec extends Specification {
     ReplicaConfig(replicaId, view, expectedFaults, null, "MD5")
   }
 
-  abstract class WithLogger(name: String = "spec-logger") extends After {
-
-    implicit val log = LoggerFactory.getLogger(name)
-
-    override def after = ()
-
-  }
-
 }
