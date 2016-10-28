@@ -7,21 +7,19 @@ import com.github.pheymann.scala.bft.storage.StorePrepare
 
 object PrepareRound {
 
-  import ValidationLifting._
   import com.github.pheymann.scala.bft.replica.ReplicaLifting._
-  import com.github.pheymann.scala.bft.storage.StorageLifting._
 
   def processPrepare(message: PrepareMessage, state: ConsensusState): Free[ReplicaAction, ConsensusState] = {
     for {
-      validatedState  <- validate(ValidatePrepare(message, state))
+      validatedState  <- process(ValidatePrepare(message, state))
       _               <- {
         if (validatedState.isPrepared)
           for {
-            _ <- store(StorePrepare(message))
+            _ <- process(StorePrepare(message))
             _ <- process(SendCommitMessage(validatedState))
           } yield validatedState
         else
-          process(Continue(validatedState))
+          assign(validatedState)
       }
     } yield validatedState
   }

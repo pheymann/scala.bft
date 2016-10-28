@@ -3,6 +3,7 @@ package com.github.pheymann.scala.bft.consensus
 import cats._
 import com.github.pheymann.scala.bft.ScalaBftSpec
 import com.github.pheymann.scala.bft.messaging.{ClientRequest, CommitMessage}
+import com.github.pheymann.scala.bft.replica.ReplicaLifting.Assign
 import com.github.pheymann.scala.bft.replica.{ExecuteRequest, ReplicaAction, ReplicaConfig}
 import com.github.pheymann.scala.bft.storage.StoreCommit
 import com.github.pheymann.scala.bft.util.ScalaBftLogger
@@ -14,12 +15,12 @@ class CommitRoundSpec extends ScalaBftSpec {
 
   def specProcessor(implicit config: ReplicaConfig) = new (ReplicaAction ~> Id) {
     def apply[A](action: ReplicaAction[A]): Id[A] = action match {
-      case validate: ValidationAction[A]  => ValidationProcessor(validate)
+      case ValidateCommit(message, state) => MessageValidation.validateCommit(message, state)
 
       case StoreCommit(_) => ()
 
       case ExecuteRequest(state)  => state
-      case Continue(state)        => state
+      case Assign(value)          => value
     }
   }
 

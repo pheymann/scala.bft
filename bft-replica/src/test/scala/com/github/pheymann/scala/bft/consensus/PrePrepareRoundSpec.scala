@@ -2,22 +2,27 @@ package com.github.pheymann.scala.bft.consensus
 
 import cats._
 import com.github.pheymann.scala.bft.ScalaBftSpec
-import com.github.pheymann.scala.bft.messaging.{ClientRequest, PrePrepareMessage, PrepareMessage}
-import com.github.pheymann.scala.bft.replica.{ReplicaAction, ReplicaConfig}
-import com.github.pheymann.scala.bft.storage.{StorePrePrepare, StorePrepare}
-import com.github.pheymann.scala.bft.util.ScalaBftLogger
-import org.slf4j.Logger
+import com.github.pheymann.scala.bft.messaging.{ClientRequest, PrePrepareMessage, PrepareMessage, RequestDelivery}
+import com.github.pheymann.scala.bft.replica.ReplicaAction
+import com.github.pheymann.scala.bft.replica.ReplicaLifting.Assign
+import com.github.pheymann.scala.bft.storage.StorePrePrepare
+import org.slf4j.LoggerFactory
 
 class PrePrepareRoundSpec extends ScalaBftSpec {
 
+  implicit val specLog = LoggerFactory.getLogger(classOf[PrePrepareRoundSpec])
+
   val specProcessor = new (ReplicaAction ~> Id) {
     def apply[A](action: ReplicaAction[A]): Id[A] = action match {
+      case ValidatePrePrepare(message, delivery, state) => MessageValidation.validatePrePrepare(message, delivery, state)
+
       case SendPrePrepareMessage(state) => PrePrepareMessage(0, 0, 0L)
       case SendPrepareMessage(state)    => PrepareMessage(0, 0, 0L)
       case SendClientRequest(request)   => ()
 
       case StorePrePrepare(_, _)  => ()
-      case StorePrepare(_)        => ()
+
+      case Assign(value) => value
     }
   }
 
@@ -28,18 +33,22 @@ class PrePrepareRoundSpec extends ScalaBftSpec {
       val state     = ConsensusState(0, 0, 0, 0, 1)
       val request   = ClientRequest(0, 0L, Array.empty)
 
-      val resultState = PrePrepareRound.processLeaderPrePrepare(request, state).foldMap(specProcessor)
-
-      resultState.isPrePrepared should beTrue
-      resultState.isPrepared should beTrue
+      PrePrepareRound.processLeaderPrePrepare(request, state).foldMap(specProcessor).isPrePrepared should beTrue
     }
 
-    "send a prepare message to all other replicas if it recevies a pre-prepare from the leader" in {
-      val state       = ConsensusState(0, 0, 0, 0, 1)
-      val resultState = PrePrepareRound.processFollowerPrePrepare(state).foldMap(specProcessor)
+    "send a prepare message to all other replicas if it receives a valid pre-prepare and request from the leader" in {
+      val message   = PrePrepareMessage(0, 0, 0L)
+      val delivery  = RequestDelivery(0, 0, 0L, ClientRequest(0, 0L, Array.empty))
+      val state     = ConsensusState(0, 0, 0, 0, 1)
 
-      resultState.isPrePrepared should beTrue
-      resultState.isPrepared should beTrue
+      // valid message / request pair
+      PrePrepareRound.processFollowerPrePrepare(message, delivery, state).foldMap(specProcessor).isPrePrepared should beTrue
+
+      // invalid message / request pair
+      val invalidMessage = PrePrepareMessage(1, 0, 0L)
+      val invalidState   = ConsensusState(0, 0, 0, 0, 1)
+
+      PrePrepareRound.processFollowerPrePrepare(invalidMessage, delivery, invalidState).foldMap(specProcessor).isPrePrepared should beFalse
     }
   }
 

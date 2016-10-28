@@ -14,6 +14,12 @@ trait ScalaBftLogger {
     log.error(msg, cause)
   }
 
+  def warnLog(msg: => String)
+             (implicit log: Logger): Unit = {
+    if (log.isWarnEnabled)
+      log.warn(msg)
+  }
+
   def infoLog(msg: => String)
              (implicit log: Logger): Unit = {
     if (log.isInfoEnabled)

@@ -1,6 +1,6 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.messaging.ConsensusMessage
+import com.github.pheymann.scala.bft.messaging.{ConsensusMessage, PrePrepareMessage, PrepareMessage, RequestDelivery}
 import com.github.pheymann.scala.bft.replica.ReplicaConfig
 import com.github.pheymann.scala.bft.util.ScalaBftLogger
 import org.slf4j.Logger
@@ -14,7 +14,26 @@ object MessageValidation {
     message.sequenceNumber <= state.highWatermark
   }
 
-  def validatePrepare(message: ConsensusMessage, state: ConsensusState)
+  def validatePrePrepare(
+                          message:  PrePrepareMessage,
+                          delivery: RequestDelivery,
+                          state:    ConsensusState
+                        )(implicit log: Logger): ConsensusState = {
+    if (
+      message.replicaId == delivery.replicaId &&
+      message.view      == delivery.view &&
+      message.sequenceNumber == delivery.sequenceNumber
+    ) {
+      ScalaBftLogger.infoLog(s"${message.toLog}.pre-prepare.consent")
+      state.isPrePrepared = true
+    }
+    else
+      ScalaBftLogger.warnLog(s"${message.toLog}.pre-prepare.invalid")
+
+    state
+  }
+
+  def validatePrepare(message: PrepareMessage, state: ConsensusState)
                      (implicit config: ReplicaConfig, log: Logger): ConsensusState = {
     if (validateMessage(message, state)) {
       state.receivedPrepares += 1

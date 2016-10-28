@@ -54,7 +54,7 @@ class MessageValidationSpec extends ScalaBftSpec {
       }
 
       //ignored
-      checkState(MessageValidation.validatePrepare(CommitMessage(1, 1, 0), state))(false, 0)
+      checkState(MessageValidation.validateCommit(CommitMessage(1, 1, 0), state))(false, 0)
 
       //accepted
       checkState(MessageValidation.validateCommit(CommitMessage(1, 0, 0), state))(false, 1)

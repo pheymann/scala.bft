@@ -9,6 +9,9 @@ final case class ExecuteRequest(state: ConsensusState) extends ReplicaAction[Con
 
 object ReplicaLifting {
 
-  def process[A](action: ReplicaAction[A]): Free[ReplicaAction, A] = Free.liftF(action)
+  final case class Assign[A](value: A) extends ReplicaAction[A]
+
+  def process[A](action: ReplicaAction[A]): Free[ReplicaAction, A]  = Free.liftF(action)
+  def assign[A](value: A): Free[ReplicaAction, A]                   = Free.liftF(Assign(value))
 
 }

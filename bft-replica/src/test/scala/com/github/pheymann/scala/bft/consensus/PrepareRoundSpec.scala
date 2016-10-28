@@ -3,6 +3,7 @@ package com.github.pheymann.scala.bft.consensus
 import cats._
 import com.github.pheymann.scala.bft.ScalaBftSpec
 import com.github.pheymann.scala.bft.messaging.PrepareMessage
+import com.github.pheymann.scala.bft.replica.ReplicaLifting.Assign
 import com.github.pheymann.scala.bft.replica.{ReplicaAction, ReplicaConfig}
 import com.github.pheymann.scala.bft.storage.StorePrepare
 import org.slf4j.LoggerFactory
@@ -13,12 +14,12 @@ class PrepareRoundSpec extends ScalaBftSpec {
 
   def specProcessor(implicit config: ReplicaConfig) = new (ReplicaAction ~> Id) {
     def apply[A](action: ReplicaAction[A]): Id[A] = action match {
-      case validate: ValidationAction[A]  => ValidationProcessor(validate)
+      case ValidatePrepare(message, state) => MessageValidation.validatePrepare(message, state)
 
       case StorePrepare(_)          => ()
       case SendCommitMessage(state) => ()
 
-      case Continue(state) => state
+      case Assign(value) => value
     }
   }
 
