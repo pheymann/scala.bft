@@ -2,7 +2,9 @@ package com.github.pheymann.scala.bft.replica
 
 import java.security.MessageDigest
 
+import akka.actor.ActorRef
 import akka.util.Timeout
+import com.github.pheymann.scala.bft.SessionKey
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -13,7 +15,11 @@ final case class ReplicaConfig(
 
                                 keyRequestDuration: FiniteDuration,
 
-                                digestStrategy: String
+                                chunkSize:          Int,
+                                digestStrategy:     String,
+                                localSessionKeys:   Map[Int, SessionKey],
+                                remoteSessionKeys:  Map[Int, SessionKey],
+                                senderRef:          ActorRef
                               ) {
 
   import ReplicaConfig._
