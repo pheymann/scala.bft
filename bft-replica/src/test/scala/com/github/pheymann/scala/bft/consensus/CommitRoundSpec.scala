@@ -32,17 +32,17 @@ class CommitRoundSpec extends ScalaBftSpec {
       val processor = specProcessor
       val state     = ConsensusState(0, 0, 0, 0, 1)
 
-      checkState(CommitRound.processCommit(CommitMessage(1, 0, 0), state).foldMap(processor), "nothing")
-      checkState(CommitRound.processCommit(CommitMessage(1, 0, 0), state).foldMap(processor), "nothing")
-      checkState(CommitRound.processCommit(CommitMessage(1, 0, 0), state).foldMap(processor), "commit")
+      checkState(CommitRound.processCommit(CommitMessage(0, 0, 0, 0), state).foldMap(processor), "nothing")
+      checkState(CommitRound.processCommit(CommitMessage(0, 0, 0, 0), state).foldMap(processor), "nothing")
+      checkState(CommitRound.processCommit(CommitMessage(0, 0, 0, 0), state).foldMap(processor), "commit")
     }
 
     "invalid messages should be ignored" in {
       implicit val config = newConfig(0, 0, 1)
 
-      val state = ConsensusState(0, 0, 0, 0, 1)
+      val state = ConsensusState(0, 1, 0, 0, 1)
 
-      CommitRound.processCommit(CommitMessage(1, 1, 0), state).foldMap(specProcessor).receivedCommits should beEqualTo(0)
+      CommitRound.processCommit(CommitMessage(0, 0, 1, 0), state).foldMap(specProcessor).receivedCommits should beEqualTo(0)
     }
   }
 

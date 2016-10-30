@@ -10,19 +10,20 @@ class MessageValidationSpec extends ScalaBftSpec {
   implicit val specLog = LoggerFactory.getLogger(classOf[MessageValidationSpec])
 
   "Received consensus messages" should {
-    """have the same view as the receiver replica and a sequence number within
-      |defined watermarks""".stripMargin in {
+    """have the same view as the receiver replica, a sequence number within
+      |defined watermarks and the expected sender/receiver ids""".stripMargin in {
       implicit val config = newConfig(0, 0, 1)
 
       val state = ConsensusState(0, 0, 0, 0, 1)
 
       // valid messages
-      MessageValidation.validateMessage(CommitMessage(1, 0, 0), state) should beTrue
-      MessageValidation.validateMessage(CommitMessage(1, 0, 1), state) should beTrue
+      MessageValidation.validateMessage(CommitMessage(0, 0, 0, 0), state) should beTrue
+      MessageValidation.validateMessage(CommitMessage(0, 0, 0, 1), state) should beTrue
 
       // invalid messages
-      MessageValidation.validateMessage(CommitMessage(1, 0, 3), state) should beFalse
-      MessageValidation.validateMessage(CommitMessage(1, 1, 0), state) should beFalse
+      MessageValidation.validateMessage(CommitMessage(0, 0, 0, 3), state) should beFalse
+      MessageValidation.validateMessage(CommitMessage(0, 0, 1, 0), state) should beFalse
+      MessageValidation.validateMessage(CommitMessage(0, 1, 1, 0), state) should beFalse
     }
 
     "set the state to prepared := true if 2f messages are received" in {
@@ -36,11 +37,11 @@ class MessageValidationSpec extends ScalaBftSpec {
       }
 
       //ignored
-      checkState(MessageValidation.validatePrepare(PrepareMessage(1, 1, 0), state))(false, 0)
+      checkState(MessageValidation.validatePrepare(PrepareMessage(0, 0, 1, 0), state))(false, 0)
 
       //accepted
-      checkState(MessageValidation.validatePrepare(PrepareMessage(1, 0, 0), state))(false, 1)
-      checkState(MessageValidation.validatePrepare(PrepareMessage(1, 0, 0), state))(true, 2)
+      checkState(MessageValidation.validatePrepare(PrepareMessage(0, 0, 0, 0), state))(false, 1)
+      checkState(MessageValidation.validatePrepare(PrepareMessage(0, 0, 0, 0), state))(true, 2)
     }
 
     "set the state to commited := true if 2f + 1 messages are received" in {
@@ -54,12 +55,12 @@ class MessageValidationSpec extends ScalaBftSpec {
       }
 
       //ignored
-      checkState(MessageValidation.validateCommit(CommitMessage(1, 1, 0), state))(false, 0)
+      checkState(MessageValidation.validateCommit(CommitMessage(0, 0, 1, 0), state))(false, 0)
 
       //accepted
-      checkState(MessageValidation.validateCommit(CommitMessage(1, 0, 0), state))(false, 1)
-      checkState(MessageValidation.validateCommit(CommitMessage(1, 0, 0), state))(false, 2)
-      checkState(MessageValidation.validateCommit(CommitMessage(1, 0, 0), state))(true, 3)
+      checkState(MessageValidation.validateCommit(CommitMessage(0, 0, 0, 0), state))(false, 1)
+      checkState(MessageValidation.validateCommit(CommitMessage(0, 0, 0, 0), state))(false, 2)
+      checkState(MessageValidation.validateCommit(CommitMessage(0, 0, 0, 0), state))(true, 3)
     }
   }
 

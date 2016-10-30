@@ -32,11 +32,11 @@ class PrepareRoundSpec extends ScalaBftSpec {
       val state     = ConsensusState(0, 0, 0, 0, 1)
 
       checkState(
-        PrepareRound.processPrepare(PrepareMessage(1, 0, 0), state).foldMap(processor),
+        PrepareRound.processPrepare(PrepareMessage(0, 0, 0, 0), state).foldMap(processor),
         "nothing"
       )
       checkState(
-        PrepareRound.processPrepare(PrepareMessage(1, 0, 0), state).foldMap(processor),
+        PrepareRound.processPrepare(PrepareMessage(0, 0, 0, 0), state).foldMap(processor),
         "prepare"
       )
     }
@@ -46,7 +46,7 @@ class PrepareRoundSpec extends ScalaBftSpec {
 
       val state = ConsensusState(0, 0, 0, 0, 1)
 
-      PrepareRound.processPrepare(PrepareMessage(1, 1, 0), state).foldMap(specProcessor).receivedPrepares should beEqualTo(0)
+      PrepareRound.processPrepare(PrepareMessage(0, 0, 1, 0), state).foldMap(specProcessor).receivedPrepares should beEqualTo(0)
     }
   }
 

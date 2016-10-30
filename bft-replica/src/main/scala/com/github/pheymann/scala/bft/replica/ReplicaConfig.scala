@@ -17,9 +17,9 @@ final case class ReplicaConfig(
 
                                 chunkSize:          Int,
                                 digestStrategy:     String,
-                                localSessionKeys:   Map[Int, SessionKey],
-                                remoteSessionKeys:  Map[Int, SessionKey],
-                                senderRef:          ActorRef
+                                senderSessions:   Map[Int, SessionKey],
+                                receiverSessions: Map[Int, SessionKey],
+                                senderRef:        ActorRef
                               ) {
 
   import ReplicaConfig._
@@ -35,7 +35,7 @@ final case class ReplicaConfig(
 
 object ReplicaConfig {
 
-  private[replica] def calculateExpectedPrepares(expectedFaults: Int): Int = expectedFaults * 2
-  private[replica] def calculateExpectedCommits(expectedFaults: Int): Int = expectedFaults * 2 + 1
+  private[replica] def calculateExpectedPrepares(expectedFaults: Int):  Int = expectedFaults * 2
+  private[replica] def calculateExpectedCommits(expectedFaults: Int):   Int = expectedFaults * 2 + 1
 
 }

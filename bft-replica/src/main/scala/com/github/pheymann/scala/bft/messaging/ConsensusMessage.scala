@@ -4,12 +4,14 @@ import com.github.pheymann.scala.bft._
 
 sealed trait ConsensusMessage extends SignableMessage {
 
-  def replicaId:      Int
+  def senderId:       Int
+  def receiverId:     Int
   def view:           Int
   def sequenceNumber: Long
 
-  lazy val toLog = "{%d,%d,%d}".format(
-    replicaId,
+  lazy val toLog = "{%d,%d,%d,%d}".format(
+    senderId,
+    receiverId,
     view,
     sequenceNumber
   )
@@ -17,14 +19,14 @@ sealed trait ConsensusMessage extends SignableMessage {
   override def toBytes: Array[Byte] = {
     import com.github.pheymann.scala.bft.util.Serialization._
 
-    intToBytes(replicaId) ++ intToBytes(view) ++ longToBytes(sequenceNumber)
+    intToBytes(senderId) ++ intToBytes(receiverId) ++ intToBytes(view) ++ longToBytes(sequenceNumber)
   }
 
 }
 
-final case class PrePrepareMessage(replicaId: Int, view: Int, sequenceNumber: Long) extends ConsensusMessage
-final case class PrepareMessage(replicaId: Int, view: Int, sequenceNumber: Long)  extends ConsensusMessage
-final case class CommitMessage(replicaId: Int, view: Int, sequenceNumber: Long)   extends ConsensusMessage
+final case class PrePrepareMessage(senderId: Int, receiverId: Int, view: Int, sequenceNumber: Long) extends ConsensusMessage
+final case class PrepareMessage(senderId: Int, receiverId: Int, view: Int, sequenceNumber: Long)  extends ConsensusMessage
+final case class CommitMessage(senderId: Int, receiverId: Int, view: Int, sequenceNumber: Long)   extends ConsensusMessage
 
 final case class SignedConsensusMessage(message: ConsensusMessage, mac: Mac)
 final case class SignedRequestChunk(chunk: Array[Byte], mac: Mac)

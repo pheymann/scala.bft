@@ -1,13 +1,14 @@
 package com.github.pheymann.scala.bft.messaging
 
-case class RequestDelivery(replicaId: Int, view: Int, sequenceNumber: Long, request: ClientRequest)
+case class RequestDelivery(senderId: Int, receiverId: Int, view: Int, sequenceNumber: Long, request: ClientRequest)
 
 object RequestDelivery {
 
   import com.github.pheymann.scala.bft.util.Serialization._
 
   def toBytes(request: RequestDelivery): Array[Byte] = {
-    intToBytes(request.replicaId) ++
+    intToBytes(request.senderId) ++
+      intToBytes(request.receiverId) ++
       intToBytes(request.view) ++
       longToBytes(request.sequenceNumber) ++
       ClientRequest.toBytes(request.request)
@@ -17,8 +18,9 @@ object RequestDelivery {
     RequestDelivery(
       bytesToInt(array, 0),
       bytesToInt(array, 4),
-      bytesToLong(array, 8),
-      ClientRequest.fromBytes(array, 16)
+      bytesToInt(array, 8),
+      bytesToLong(array, 12),
+      ClientRequest.fromBytes(array, 20)
     )
   }
 

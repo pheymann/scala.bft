@@ -21,8 +21,8 @@ object MessageSender {
 
   private def signConsensusMessage(message: ConsensusMessage)
                                   (implicit config: ReplicaConfig): Xor[NoSessionKey, Mac] = {
-    config.localSessionKeys.get(message.replicaId).fold[Xor[NoSessionKey, Mac]](
-      Xor.left(NoSessionKey(message.replicaId))
+    config.senderSessions.get(message.receiverId).fold[Xor[NoSessionKey, Mac]](
+      Xor.left(NoSessionKey(message.receiverId))
     ) { sessionKey =>
       Xor.right(AuthenticationGenerator.generateMAC(message, sessionKey))
     }
@@ -30,8 +30,8 @@ object MessageSender {
 
   def sendClientRequest(delivery: RequestDelivery, send: (Any, ReplicaConfig) => Unit = sendToActor)
                        (implicit config: ReplicaConfig): Xor[NoSessionKey, Boolean] = {
-    config.localSessionKeys.get(delivery.replicaId).fold[Xor[NoSessionKey, Boolean]](
-      Xor.left(NoSessionKey(delivery.replicaId))
+    config.senderSessions.get(delivery.receiverId).fold[Xor[NoSessionKey, Boolean]](
+      Xor.left(NoSessionKey(delivery.receiverId))
     ) { sessionKey =>
       Xor.right {
         RequestStream

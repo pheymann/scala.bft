@@ -9,7 +9,7 @@ class MessageSenderSpec extends ScalaBftSpec {
 
   "The MessageSender" should {
     "sign consensus messages and send them to the target replica/client if a session key exists" in {
-      val message = CommitMessage(0, 0, 0L)
+      val message = CommitMessage(0, 0, 0, 0L)
 
       implicit val config = newConfig(0, 0, 0)
 
@@ -20,11 +20,11 @@ class MessageSenderSpec extends ScalaBftSpec {
       }) should beEqualTo(Xor.right(true))
 
       digestOpt.isDefined should beTrue
-      digestOpt.get should beEqualTo(AuthenticationGenerator.generateMAC(message, config.localSessionKeys.head._2))
+      digestOpt.get should beEqualTo(AuthenticationGenerator.generateMAC(message, config.senderSessions.head._2))
     }
 
     "reject messages which target a replica without a session" in {
-      val invalidMessage = CommitMessage(1, 0, 0L)
+      val invalidMessage = CommitMessage(0, 1, 0, 0L)
 
       implicit val config = newConfig(0, 0, 0)
 
@@ -39,7 +39,7 @@ class MessageSenderSpec extends ScalaBftSpec {
       |a session key exists
     """.stripMargin in {
       val request   = ClientRequest(0, 0L, Array[Byte](1, 2, 3))
-      val delivery  = RequestDelivery(0, 0, 0L, request)
+      val delivery  = RequestDelivery(0, 0, 0, 0L, request)
 
       implicit val config = newConfig(0, 0, 0)
 
@@ -47,12 +47,12 @@ class MessageSenderSpec extends ScalaBftSpec {
 
       MessageSender.sendClientRequest(delivery, (signedChunk, _) => sentChunks += 1) should beEqualTo(Xor.right(true))
 
-      sentChunks should beEqualTo(RequestDelivery.toBytes(delivery).length / testChunkSize + 1)
+      sentChunks should beEqualTo(RequestDelivery.toBytes(delivery).length / testChunkSize)
     }
 
     "reject a request if no session exists with the target replica" in {
       val request         = ClientRequest(0, 0L, Array[Byte](1, 2, 3))
-      val invalidDelivery = RequestDelivery(1, 0, 0L, request)
+      val invalidDelivery = RequestDelivery(0, 1, 0, 0L, request)
 
       implicit val config = newConfig(0, 0, 0)
 

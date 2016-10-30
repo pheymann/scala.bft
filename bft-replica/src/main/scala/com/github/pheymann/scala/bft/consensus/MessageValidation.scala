@@ -9,7 +9,8 @@ object MessageValidation {
 
   private[consensus] def validateMessage(message: ConsensusMessage, state: ConsensusState)
                                         (implicit config: ReplicaConfig): Boolean = {
-    message.view == config.view &&
+    message.receiverId  == state.replicaId &&
+    message.view        == config.view &&
     message.sequenceNumber >= state.lowWatermark &&
     message.sequenceNumber <= state.highWatermark
   }
@@ -20,8 +21,9 @@ object MessageValidation {
                           state:    ConsensusState
                         )(implicit log: Logger): ConsensusState = {
     if (
-      message.replicaId == delivery.replicaId &&
-      message.view      == delivery.view &&
+      message.senderId    == delivery.senderId &&
+      message.receiverId  == delivery.receiverId &&
+      message.view        == delivery.view &&
       message.sequenceNumber == delivery.sequenceNumber
     ) {
       ScalaBftLogger.infoLog(s"${message.toLog}.pre-prepare.consent")
