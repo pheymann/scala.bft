@@ -29,4 +29,4 @@ final case class PrepareMessage(senderId: Int, receiverId: Int, view: Int, seque
 final case class CommitMessage(senderId: Int, receiverId: Int, view: Int, sequenceNumber: Long)   extends ConsensusMessage
 
 final case class SignedConsensusMessage(message: ConsensusMessage, mac: Mac)
-final case class SignedRequestChunk(chunk: Array[Byte], mac: Mac)
+final case class SignedRequestChunk(receiverId: Int, chunk: Array[Byte], mac: Mac)

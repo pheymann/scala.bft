@@ -3,19 +3,28 @@ package com.github.pheymann.scala.bft.messaging
 import akka.pattern.ask
 import akka.actor.{Actor, ActorSelection}
 import cats.data.Xor
-import com.github.pheymann.scala.bft.SessionKey
+import com.github.pheymann.scala.bft._
 import com.github.pheymann.scala.bft.replica.{ReplicaConfig, ReplicaEndpoint}
 import com.github.pheymann.scala.bft.util.ActorLoggingUtil
 
 import scala.concurrent.Await
 import scala.util.control.NonFatal
 
-class SenderActor(endpoint: ReplicaEndpoint, remoteSelect: ActorSelection) extends Actor with ActorLoggingUtil {
+class SenderActor(endpoints: Seq[ReplicaEndpoint]) extends Actor
+                                                   with    ActorLoggingUtil {
 
-  infoLog(s"sender.start: ${endpoint.toLog}")
+  import SenderActor._
+
+  private val senderRefs: Map[Int, ActorSelection] = endpoints
+    .map { endpoint =>
+      val remoteRef = context.actorSelection(url(endpoint, ReceiverActor.name))
+
+      endpoint.id -> remoteRef
+    }(collection.breakOut)
 
   override def receive = {
-    case message => remoteSelect ! message
+    case msg: SignedConsensusMessage  => senderRefs.get(msg.message.receiverId).foreach(_ ! msg)
+    case msg: SignedRequestChunk      => senderRefs.get(msg.receiverId).foreach(_ ! msg)
   }
 
 }
@@ -51,6 +60,6 @@ object SenderActor {
     }
   }
 
-  def name(endpoint: ReplicaEndpoint): String = s"replica-sender_${endpoint.host}-${endpoint.port}"
+  val name: String = "sender_router"
 
 }

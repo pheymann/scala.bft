@@ -12,3 +12,9 @@ class ReceiverActor(publisherRef: ActorRef) extends Actor with ActorLoggingUtil 
   }
 
 }
+
+object ReceiverActor {
+
+  val name = "receiver_actor"
+
+}
