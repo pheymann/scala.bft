@@ -33,7 +33,7 @@ class PrePrepareRoundSpec extends ScalaBftSpec {
       val state     = ConsensusState(0, 0, 0, 0, 1)
       val request   = ClientRequest(0, 0L, Array.empty)
 
-      PrePrepareRound.processLeaderPrePrepare(request, state).foldMap(specProcessor).isPrePrepared should beTrue
+      checkState(PrePrepareRound.processLeaderPrePrepare(request, state).foldMap(specProcessor), "pre-prepare")
     }
 
     "send a prepare message to all other replicas if it receives a valid pre-prepare and request from the leader" in {
@@ -42,13 +42,19 @@ class PrePrepareRoundSpec extends ScalaBftSpec {
       val state     = ConsensusState(0, 0, 0, 0, 1)
 
       // valid message / request pair
-      PrePrepareRound.processFollowerPrePrepare(message, delivery, state).foldMap(specProcessor).isPrePrepared should beTrue
+      checkState(
+        PrePrepareRound.processFollowerPrePrepare(message, delivery, state).foldMap(specProcessor),
+        "pre-prepare"
+      )
 
       // invalid message / request pair
       val invalidMessage = PrePrepareMessage(1, 0, 0L)
       val invalidState   = ConsensusState(0, 0, 0, 0, 1)
 
-      PrePrepareRound.processFollowerPrePrepare(invalidMessage, delivery, invalidState).foldMap(specProcessor).isPrePrepared should beFalse
+      checkState(
+        PrePrepareRound.processFollowerPrePrepare(invalidMessage, delivery, invalidState).foldMap(specProcessor),
+        "nothing"
+      )
     }
   }
 

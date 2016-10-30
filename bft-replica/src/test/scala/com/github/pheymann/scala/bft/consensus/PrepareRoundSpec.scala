@@ -31,8 +31,14 @@ class PrepareRoundSpec extends ScalaBftSpec {
       val processor = specProcessor
       val state     = ConsensusState(0, 0, 0, 0, 1)
 
-      PrepareRound.processPrepare(PrepareMessage(1, 0, 0), state).foldMap(processor).isPrepared should beFalse
-      PrepareRound.processPrepare(PrepareMessage(1, 0, 0), state).foldMap(processor).isPrepared should beTrue
+      checkState(
+        PrepareRound.processPrepare(PrepareMessage(1, 0, 0), state).foldMap(processor),
+        "nothing"
+      )
+      checkState(
+        PrepareRound.processPrepare(PrepareMessage(1, 0, 0), state).foldMap(processor),
+        "prepare"
+      )
     }
 
     "invalid messages should be ignored" in {

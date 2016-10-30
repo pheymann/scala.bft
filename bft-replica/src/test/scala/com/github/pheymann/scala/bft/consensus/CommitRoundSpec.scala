@@ -2,7 +2,7 @@ package com.github.pheymann.scala.bft.consensus
 
 import cats._
 import com.github.pheymann.scala.bft.ScalaBftSpec
-import com.github.pheymann.scala.bft.messaging.{ClientRequest, CommitMessage}
+import com.github.pheymann.scala.bft.messaging.{ClientRequest, CommitMessage, PrepareMessage}
 import com.github.pheymann.scala.bft.replica.ReplicaLifting.Assign
 import com.github.pheymann.scala.bft.replica.{ExecuteRequest, ReplicaAction, ReplicaConfig}
 import com.github.pheymann.scala.bft.storage.StoreCommit
@@ -32,9 +32,9 @@ class CommitRoundSpec extends ScalaBftSpec {
       val processor = specProcessor
       val state     = ConsensusState(0, 0, 0, 0, 1)
 
-      CommitRound.processCommit(CommitMessage(1, 0, 0), state).foldMap(processor).isCommited should beFalse
-      CommitRound.processCommit(CommitMessage(1, 0, 0), state).foldMap(processor).isCommited should beFalse
-      CommitRound.processCommit(CommitMessage(1, 0, 0), state).foldMap(processor).isCommited should beTrue
+      checkState(CommitRound.processCommit(CommitMessage(1, 0, 0), state).foldMap(processor), "nothing")
+      checkState(CommitRound.processCommit(CommitMessage(1, 0, 0), state).foldMap(processor), "nothing")
+      checkState(CommitRound.processCommit(CommitMessage(1, 0, 0), state).foldMap(processor), "commit")
     }
 
     "invalid messages should be ignored" in {
