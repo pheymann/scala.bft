@@ -14,4 +14,5 @@ Check out the current feature branches, projects and issues to see what is curre
 If you want to participate and change stuff on this project you have to know the following guidelines:
  - the workflow relies on [git flow](http://danielkummer.github.io/git-flow-cheatsheet/)
  - everything should be covered by tests (I know it is boring and even I'm sometimes leave some test cases out, but try your best)
+ - open PRs as early as possible (after the first change) to get an immedialetly feedback
  - as this project uses [Travis CI](https://travis-ci.org/pheymann/scala.bft) for build management it also checks if tests are running; so be sure the tests are okay before creating a PR
