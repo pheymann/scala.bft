@@ -1,5 +1,7 @@
 package com.github.pheymann.scala.bft.consensus
 
+import org.slf4j.{Logger, LoggerFactory}
+
 case class ConsensusState(
                             replicaId:      Int,
                             view:           Int,
@@ -15,6 +17,8 @@ case class ConsensusState(
 
   var receivedPrepares  = 0
   var receivedCommits   = 0
+
+  implicit val log = LoggerFactory.getLogger(s"{$replicaId,$view,$sequenceNumber}")
 
 }
 

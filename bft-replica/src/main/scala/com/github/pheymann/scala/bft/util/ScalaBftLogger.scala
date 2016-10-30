@@ -4,29 +4,29 @@ import org.slf4j.Logger
 
 trait ScalaBftLogger {
 
-  def errorLog(msg: => String)
+  def logError(msg: => String)
               (implicit log: Logger): Unit = {
     log.error(msg)
   }
 
-  def errorLog(cause: Throwable, msg: => String)
+  def logError(cause: Throwable, msg: => String)
               (implicit log: Logger): Unit = {
     log.error(msg, cause)
   }
 
-  def warnLog(msg: => String)
+  def logWarn(msg: => String)
              (implicit log: Logger): Unit = {
     if (log.isWarnEnabled)
       log.warn(msg)
   }
 
-  def infoLog(msg: => String)
+  def logInfo(msg: => String)
              (implicit log: Logger): Unit = {
     if (log.isInfoEnabled)
       log.info(msg)
   }
 
-  def debugLog(msg: => String)
+  def logDebug(msg: => String)
               (implicit log: Logger): Unit = {
     if (log.isDebugEnabled)
       log.debug(msg)

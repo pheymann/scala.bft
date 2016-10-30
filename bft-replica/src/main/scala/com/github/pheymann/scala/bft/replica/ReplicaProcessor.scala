@@ -7,7 +7,7 @@ import com.github.pheymann.scala.bft.replica.ReplicaLifting.Assign
 import com.github.pheymann.scala.bft.storage._
 import org.slf4j.Logger
 
-class ReplicaProcessor(implicit config: ReplicaConfig, log: Logger) extends (ReplicaAction ~> Id) {
+class ReplicaProcessor(implicit config: ReplicaConfig) extends (ReplicaAction ~> Id) {
 
   import ReplicaProcessor._
 
@@ -25,7 +25,7 @@ class ReplicaProcessor(implicit config: ReplicaConfig, log: Logger) extends (Rep
     case StorePrepare(message) => ??? //TODO implemented storage
     case StoreCommit(message)  => ??? //TODO implemented storage
 
-    case ExecuteRequest(state)          => ??? //TODO implement execute request
+    case ExecuteRequest(state) => ??? //TODO implement execute request
 
     case Assign(value) => value
   }

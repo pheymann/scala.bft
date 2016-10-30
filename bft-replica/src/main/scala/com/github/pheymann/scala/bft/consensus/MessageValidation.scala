@@ -19,50 +19,56 @@ object MessageValidation {
                           message:  PrePrepareMessage,
                           delivery: RequestDelivery,
                           state:    ConsensusState
-                        )(implicit log: Logger): ConsensusState = {
+                        ): ConsensusState = {
+    import state.log
+
     if (
       message.senderId    == delivery.senderId &&
       message.receiverId  == delivery.receiverId &&
       message.view        == delivery.view &&
       message.sequenceNumber == delivery.sequenceNumber
     ) {
-      ScalaBftLogger.infoLog(s"${message.toLog}.pre-prepare.consent")
+      ScalaBftLogger.logInfo(s"${message.toLog}.pre-prepare.consent")
       state.isPrePrepared = true
     }
     else
-      ScalaBftLogger.warnLog(s"${message.toLog}.pre-prepare.invalid")
+      ScalaBftLogger.logWarn(s"${message.toLog}.pre-prepare.invalid")
 
     state
   }
 
   def validatePrepare(message: PrepareMessage, state: ConsensusState)
-                     (implicit config: ReplicaConfig, log: Logger): ConsensusState = {
+                     (implicit config: ReplicaConfig): ConsensusState = {
+    import state.log
+
     if (validateMessage(message, state)) {
       state.receivedPrepares += 1
 
       if (state.receivedPrepares == config.expectedPrepares) {
-        ScalaBftLogger.infoLog(s"${message.toLog}.prepare.consent")
+        ScalaBftLogger.logInfo(s"${message.toLog}.prepare.consent")
         state.isPrepared = true
       }
     }
     else
-      ScalaBftLogger.debugLog("prepare.invalid")
+      ScalaBftLogger.logDebug("prepare.invalid")
 
     state
   }
 
   def validateCommit(message: ConsensusMessage, state: ConsensusState)
-                    (implicit config: ReplicaConfig, log: Logger): ConsensusState = {
+                    (implicit config: ReplicaConfig): ConsensusState = {
+    import state.log
+
     if (validateMessage(message, state)) {
       state.receivedCommits += 1
 
       if (state.receivedCommits == config.expectedCommits) {
-        ScalaBftLogger.infoLog(s"${message.toLog}.commit.consent")
+        ScalaBftLogger.logInfo(s"${message.toLog}.commit.consent")
         state.isCommited = true
       }
     }
     else
-      ScalaBftLogger.debugLog("commit.invalid")
+      ScalaBftLogger.logDebug("commit.invalid")
 
     state
   }
