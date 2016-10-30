@@ -5,7 +5,7 @@ This projects aims to provide scala based implementation of the **B**yzantine **
 
 A short introduction and description of the general idea of how to enable multiple leader is given in the [Wiki](https://github.com/pheymann/scala.bft/wiki).
 
-Check out the current feature branches and issues to see what is currenlty in development and what comes next.
+Check out the current feature branches, projects and issues to see what is currenlty in development and what comes next.
 
 ## Project
  - *bft-replica*: implements the basic **B**yzantine **F**ault **T**olerance protocol for the replicas
