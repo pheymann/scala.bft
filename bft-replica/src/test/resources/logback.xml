@@ -1,16 +1,11 @@
-<configuration>
-    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-        <target>System.out</target>
+<configuration scan="false">
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%-5level][%logger{25}] %msg%n</pattern>
+            <pattern>%date - [%level] - %logger.%message%n%xException</pattern>
         </encoder>
     </appender>
 
-    <logger name="com.github.pheymann.scala.bft.util.RoundMessageCollectorActor" level="info" />
-    <logger name="com.github.pheymann.scala.bft.util.StorageMessageCollectorActor" level="info" />
-    <logger name="akka.event.EventStream" level="info"/>
-
-    <root level="debug">
-        <appender-ref ref="console"/>
+    <root level="${ROOT_LOG_LEVEL:-INFO}">
+        <appender-ref ref="STDOUT" />
     </root>
 </configuration>

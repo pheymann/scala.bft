@@ -1,53 +1,43 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.replica.ReplicaContext
-
-class PrePrepareRound(
-                       implicit
-                       val consensusContext: ConsensusContext,
-                       val replicaContext:   ReplicaContext
-                     ) extends ConsensusRoundActor {
-
-  import PrePrepareRound._
-
-  protected val round = roundName
-
-  protected val message = PrePrepare(
-    replicas.self.id,
-    consensusContext.sequenceNumber,
-    consensusContext.view,
-    consensusContext.requestDigits
-  )
-
-  storage.startForRequest(consensusContext.request)
-  storage.addPrePrepare(message)
-
-  override def receive = {
-    case StartConsensus =>
-      replicas.sendMessage(message)
-      replicas.sendRequest(consensusContext.request)
-
-      sender() ! FinishedPrePrepare
-
-    case JoinConsensus =>
-      sender() ! FinishedPrePrepare
-  }
-
-}
+import cats.free.Free
+import com.github.pheymann.scala.bft.messaging.{ClientRequest, PrePrepareMessage, RequestDelivery}
+import com.github.pheymann.scala.bft.replica.ReplicaAction
+import com.github.pheymann.scala.bft.storage.StorePrePrepare
 
 object PrePrepareRound {
 
-  private val roundName = "pre-prepare"
+  import com.github.pheymann.scala.bft.replica.ReplicaLifting._
 
-  case object StartConsensus
-  case object JoinConsensus
-  case object FinishedPrePrepare
+  def processLeaderPrePrepare(request: ClientRequest, state: ConsensusState): Free[ReplicaAction, ConsensusState] = {
+    for {
+      _ <- process(SendPrePrepareMessage(state))
+      _ <- process(SendClientRequest(request, state))
+      _ <- process(StorePrePrepare(request, state))
+      _ <- process(SendPrepareMessage(state))
+    } yield {
+      state.isPrePrepared = true
+      state
+    }
+  }
 
-  case class PrePrepare(
-                         replicaId:       Long,
-                         sequenceNumber:  Long,
-                         view:            Long,
-                         requestDigits:   Array[Byte]
-                       ) extends ConsensusMessage
+  def processFollowerPrePrepare(
+                                 message:   PrePrepareMessage,
+                                 delivery:  RequestDelivery,
+                                 state:     ConsensusState
+                               ): Free[ReplicaAction, ConsensusState] = {
+    for {
+      validatedState  <- process(ValidatePrePrepare(message, delivery, state))
+      _               <- {
+        if (validatedState.isPrePrepared)
+          for {
+            _ <- process(StorePrePrepare(delivery.request, state))
+            _ <- process(SendPrepareMessage(state))
+          } yield validatedState
+        else
+          assign(validatedState)
+      }
+    } yield validatedState
+  }
 
 }

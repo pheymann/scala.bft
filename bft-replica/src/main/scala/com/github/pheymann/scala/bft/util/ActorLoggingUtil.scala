@@ -4,18 +4,9 @@ import akka.actor.{Actor, ActorLogging}
 
 trait ActorLoggingUtil extends ActorLogging { this: Actor =>
 
-  def error(msg: => String) {
-    log.error(msg)
-  }
-
-  def info(msg: => String) {
+  def infoLog(msg: => String): Unit = {
     if (log.isInfoEnabled)
       log.info(msg)
-  }
-
-  def debug(msg: => String) {
-    if (log.isDebugEnabled)
-      log.debug(msg)
   }
 
 }
