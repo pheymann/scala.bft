@@ -5,7 +5,8 @@ import com.github.pheymann.scala.bft.replica.ReplicaAction
 
 sealed trait ConsensusAction[A] extends ReplicaAction[A]
 
-final case class SendClientRequest(request: ClientRequest, state: ConsensusState) extends ConsensusAction[Unit]
-final case class SendPrePrepareMessage(state: ConsensusState) extends ConsensusAction[Unit]
-final case class SendPrepareMessage(state: ConsensusState)  extends ConsensusAction[Unit]
-final case class SendCommitMessage(state: ConsensusState)   extends ConsensusAction[Unit]
+final case class SendClientRequest(request: ClientRequest) extends ConsensusAction[Unit]
+
+case object SendPrePrepareMessage extends ConsensusAction[Unit]
+case object SendPrepareMessage    extends ConsensusAction[Unit]
+case object SendCommitMessage     extends ConsensusAction[Unit]

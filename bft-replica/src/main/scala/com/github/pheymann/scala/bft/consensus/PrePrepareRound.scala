@@ -11,10 +11,10 @@ object PrePrepareRound {
 
   def processLeaderPrePrepare(request: ClientRequest, state: ConsensusState): Free[ReplicaAction, ConsensusState] = {
     for {
-      _ <- process(SendPrePrepareMessage(state))
-      _ <- process(SendClientRequest(request, state))
+      _ <- process(SendPrePrepareMessage)
+      _ <- process(SendClientRequest(request))
       _ <- process(StorePrePrepare(request, state))
-      _ <- process(SendPrepareMessage(state))
+      _ <- process(SendPrepareMessage)
     } yield {
       state.isPrePrepared = true
       state
@@ -32,7 +32,7 @@ object PrePrepareRound {
         if (validatedState.isPrePrepared)
           for {
             _ <- process(StorePrePrepare(delivery.request, state))
-            _ <- process(SendPrepareMessage(state))
+            _ <- process(SendPrepareMessage)
           } yield validatedState
         else
           assign(validatedState)

@@ -4,6 +4,10 @@ import akka.actor.{Actor, ActorLogging}
 
 trait ActorLoggingUtil extends ActorLogging { this: Actor =>
 
+  def logError(cause: Throwable, msg: => String): Unit = {
+    log.error(cause, msg)
+  }
+
   def logWarn(msg: => String): Unit = {
     if (log.isWarningEnabled)
       log.warning(msg)

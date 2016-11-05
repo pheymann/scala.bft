@@ -6,21 +6,21 @@ import com.github.pheymann.scala.bft.replica.ReplicaConfig
 import com.github.pheymann.scala.bft.util.AuthenticationVerification
 import org.slf4j.LoggerFactory
 
-object ConnectionHandler {
+object ReceiverConnectionHandler {
 
   import com.github.pheymann.scala.bft.util.ScalaBftLogger._
 
-  private implicit val log = LoggerFactory.getLogger("connection.handler")
+  private implicit val log = LoggerFactory.getLogger("receiver.connection.handler")
 
-  final case class ConnectionState(senderId: Int, sessionKey: SessionKey) {
+  final case class ReceiverConnectionState(senderId: Int, sessionKey: SessionKey) {
 
-    private[ConnectionHandler] var streamStateOpt  = Option.empty[RequestStreamState]
+    private[ReceiverConnectionHandler] var streamStateOpt  = Option.empty[RequestStreamState]
 
-    private[ConnectionHandler] val messageBuffer   = collection.mutable.ListBuffer[SignedConsensusMessage]()
+    private[ReceiverConnectionHandler] val messageBuffer   = collection.mutable.ListBuffer[SignedConsensusMessage]()
 
   }
 
-  def handleMessage(message: Any, state: ConnectionState)
+  def handleMessage(message: Any, state: ReceiverConnectionState)
                    (implicit config: ReplicaConfig): Option[Seq[Any]] = message match {
     case message: SignedConsensusMessage =>
       if (verify(message, state.sessionKey))
@@ -91,7 +91,7 @@ object ConnectionHandler {
     AuthenticationVerification.verify(chunk, sessionKey)
   }
 
-  private def verify(signalChunk: ChunkMessage, state: ConnectionState): Boolean = {
+  private def verify(signalChunk: ChunkMessage, state: ReceiverConnectionState): Boolean = {
     signalChunk.senderId == state.senderId &&
       signalChunk.sequenceNumber == state.streamStateOpt.get.sequenceNumber
   }

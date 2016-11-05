@@ -17,8 +17,7 @@ final case class ReplicaConfig(
 
                                 chunkSize:          Int,
                                 digestStrategy:     String,
-                                senderSessions:   Map[Int, SessionKey],
-                                receiverSessions: Map[Int, SessionKey],
+
                                 senderRef:        ActorRef,
 
                                 var sequenceNumber: Long

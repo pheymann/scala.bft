@@ -16,7 +16,7 @@ object PrepareRound {
         if (validatedState.isPrepared)
           for {
             _ <- process(StorePrepare(message))
-            _ <- process(SendCommitMessage(validatedState))
+            _ <- process(SendCommitMessage)
           } yield validatedState
         else
           assign(validatedState)
