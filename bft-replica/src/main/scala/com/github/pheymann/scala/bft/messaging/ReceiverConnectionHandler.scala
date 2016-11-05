@@ -16,53 +16,61 @@ object ReceiverConnectionHandler {
 
     private[ReceiverConnectionHandler] var streamStateOpt  = Option.empty[RequestStreamState]
 
-    private[ReceiverConnectionHandler] val messageBuffer   = collection.mutable.ListBuffer[SignedConsensusMessage]()
+    private[ReceiverConnectionHandler] val messageBuffer   = collection.mutable.ListBuffer[ConsensusMessage]()
 
   }
 
-  def handleMessage(message: Any, state: ReceiverConnectionState)
-                   (implicit config: ReplicaConfig): Option[Seq[Any]] = message match {
-    case message: SignedConsensusMessage =>
-      if (verify(message, state.sessionKey))
-        state.streamStateOpt.fold[Option[Seq[Any]]] {
-          Some(Seq(message))
-        } { _ =>
-          state.messageBuffer += message
-          None
-        }
-      else {
-        logWarn(s"invalid.message: ${message.message.toLog}")
+  def handleConsensus(signedMessage: SignedConsensusMessage, state: ReceiverConnectionState)
+                     (implicit config: ReplicaConfig): Option[ConsensusMessage] = {
+    if (verify(signedMessage, state.sessionKey))
+      state.streamStateOpt.fold[Option[ConsensusMessage]] {
+        Some(signedMessage.message)
+      } { _ =>
+        state.messageBuffer += signedMessage.message
         None
       }
+    else {
+      logWarn(s"${signedMessage.message.senderId}.invalid.message: ${signedMessage.message.toLog}")
+      None
+    }
+  }
 
+  def handleStreams(chunk: ChunkMessage, state: ReceiverConnectionState)
+                   (implicit config: ReplicaConfig): Option[Seq[Any]] = chunk match {
     case start: StartChunk =>
       state.streamStateOpt.fold {
-        if (verify(start, state))
-          state.streamStateOpt = Some(RequestStreamState(start.sequenceNumber))
-        else
-          logWarn(s"invalid.start.chunk: $start")
+        state.streamStateOpt = Some(RequestStreamState(start.sequenceNumber))
       } { _ =>
-        logWarn(s"unexpected.start.chunk: $start")
+        logWarn(s"${chunk.senderId}.unexpected.start.chunk: $start")
       }
 
       None
 
     case end: EndChunk =>
       state.streamStateOpt.fold {
-        logWarn(s"unexpected.end.chunk: $end")
+        logWarn(s"${chunk.senderId}.unexpected.end.chunk: $end")
         Option.empty[Seq[Any]]
       } { streamState =>
         if (verify(end, state)) {
-          //TODO handle exceptions
-          val request = RequestStream.generateRequest(state.streamStateOpt.get)
-          val messages = Seq(request) ++ state.messageBuffer
+          def collectMessages(requestResult: Seq[Any] = Nil): Some[Seq[Any]] = {
+            val messages = requestResult ++ state.messageBuffer
 
-          state.streamStateOpt = None
-          state.messageBuffer.clear()
-          Some(messages)
+            state.streamStateOpt = None
+            state.messageBuffer.clear()
+            Some(messages)
+          }
+
+          RequestStream.generateRequest(state.streamStateOpt.get).fold[Option[Seq[Any]]](
+            { cause =>
+              logError(cause, s"${chunk.senderId}.invalid.stream")
+              collectMessages()
+            }, { request =>
+              collectMessages(Seq(request))
+            }
+          )
         }
         else {
-          logWarn(s"invalid.end.chunk: $end")
+          logWarn(s"${chunk.senderId}.invalid.end.chunk: $end")
           None
         }
       }
@@ -70,12 +78,12 @@ object ReceiverConnectionHandler {
 
     case chunk: SignedRequestChunk =>
       state.streamStateOpt.fold {
-        logWarn(s"unexpected.chunk: $chunk")
+        logWarn(s"${chunk.senderId}.unexpected.chunk: $chunk")
       } { streamState =>
         if (verify(chunk, state.sessionKey))
           RequestStream.collectChunks(chunk.chunk, streamState)
         else
-          logWarn(s"invalid.chunk: $chunk")
+          logWarn(s"${chunk.senderId}.invalid.chunk: $chunk")
       }
 
       None

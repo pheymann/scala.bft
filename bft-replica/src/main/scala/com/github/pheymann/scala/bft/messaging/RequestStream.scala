@@ -1,5 +1,9 @@
 package com.github.pheymann.scala.bft.messaging
 
+import cats.data.Xor
+
+import scala.util.control.NonFatal
+
 object RequestStream {
 
   final case class RequestStreamState(sequenceNumber: Long) {
@@ -20,9 +24,20 @@ object RequestStream {
     state
   }
 
-  def generateRequest(state: RequestStreamState): RequestDelivery = {
-    //TODO use mutable builder instead of immutable list concatenation
-    RequestDelivery.fromBytes(state.chunks.foldLeft(Array.empty[Byte])(_ ++ _))
+  def generateRequest(state: RequestStreamState): Xor[Throwable, RequestDelivery] = {
+    try {
+      val builder = Seq.newBuilder[Byte]
+
+      state.chunks.foreach { chunk =>
+        builder ++= chunk
+      }
+
+      Xor.right(RequestDelivery.fromBytes(builder.result().toArray))
+    }
+    catch {
+      case NonFatal(cause) => Xor.left(cause)
+
+    }
   }
 
 }

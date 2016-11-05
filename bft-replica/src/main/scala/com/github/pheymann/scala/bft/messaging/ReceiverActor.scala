@@ -19,13 +19,13 @@ class ReceiverActor(implicit config: ReplicaConfig) extends Actor with ActorLogg
   override def receive = {
     case message: SignedConsensusMessage =>
       connections.get(message.message.senderId) match {
-        case Some(state)  => ReceiverConnectionHandler.handleMessage(message, state).foreach(_.foreach(msg => queue.enqueue(msg)))
+        case Some(state)  => ReceiverConnectionHandler.handleConsensus(message, state).foreach(msg => queue.enqueue(msg))
         case None         => logWarn(s"unknown.connection: ${message.message.senderId}")
       }
 
-    case chunk: SignedChunkMessage =>
+    case chunk: ChunkMessage =>
       connections.get(chunk.senderId) match {
-        case Some(state)  => ReceiverConnectionHandler.handleMessage(chunk, state).foreach(_.foreach(msg => queue.enqueue(msg)))
+        case Some(state)  => ReceiverConnectionHandler.handleStreams(chunk, state).foreach(_.foreach(msg => queue.enqueue(msg)))
         case None         => logWarn(s"unknown.connection: ${chunk.senderId}")
       }
 
