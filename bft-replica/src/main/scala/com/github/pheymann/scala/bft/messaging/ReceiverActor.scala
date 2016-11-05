@@ -36,8 +36,10 @@ class ReceiverActor(implicit config: ReplicaConfig) extends Actor with ActorLogg
         sender() ! NoMessage
 
     case OpenConnection(senderId) =>
-      if (connections.contains(senderId))
+      if (connections.contains(senderId)) {
         logWarn(s"connection.exists: $senderId")
+        sender() ! ConnectionAlreadyOpen
+      }
       else {
         val sessionKey = SessionKeyGenerator.generateSessionKey(senderId, config.id)
 
@@ -69,6 +71,8 @@ object ReceiverActor {
 
   final case class OpenConnection(senderId: Int)
   final case class ConnectionSession(sessionKey: SessionKey)
+
+  case object ConnectionAlreadyOpen
 
   val name = "receiver"
 

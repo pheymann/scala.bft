@@ -1,10 +1,12 @@
 package com.github.pheymann.scala.bft
 
-import akka.actor.ActorRef
+import akka.actor.{ActorRef, ActorSystem}
+import akka.testkit.{ImplicitSender, TestKit}
 import com.github.pheymann.scala.bft.consensus.ConsensusState
 import com.github.pheymann.scala.bft.replica.ReplicaConfig
-import org.specs2.mutable.Specification
+import org.specs2.mutable.{After, Specification}
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 trait ScalaBftSpec extends Specification {
@@ -39,6 +41,16 @@ trait ScalaBftSpec extends Specification {
       state.isPrePrepared should beFalse
       state.isPrepared should beFalse
       state.isCommited should beFalse
+  }
+
+  abstract class WithActorSystem  extends TestKit(ActorSystem())
+                                  with    After
+                                  with    ImplicitSender {
+
+    override def after = {
+      Await.result(system.terminate(), testDuration)
+    }
+
   }
 
 }
