@@ -2,12 +2,11 @@ package com.github.pheymann.scala.bft.consensus
 
 import cats._
 import com.github.pheymann.scala.bft.ScalaBftSpec
-import com.github.pheymann.scala.bft.messaging.{ClientRequest, CommitMessage, PrepareMessage}
+import com.github.pheymann.scala.bft.messaging.CommitMessage
 import com.github.pheymann.scala.bft.replica.ReplicaLifting.Assign
 import com.github.pheymann.scala.bft.replica.{ExecuteRequest, ReplicaAction, ReplicaConfig}
 import com.github.pheymann.scala.bft.storage.StoreCommit
-import com.github.pheymann.scala.bft.util.ScalaBftLogger
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.LoggerFactory
 
 class CommitRoundSpec extends ScalaBftSpec {
 

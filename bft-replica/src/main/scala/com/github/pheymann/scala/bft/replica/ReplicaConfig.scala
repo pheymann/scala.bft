@@ -19,7 +19,9 @@ final case class ReplicaConfig(
                                 digestStrategy:     String,
                                 senderSessions:   Map[Int, SessionKey],
                                 receiverSessions: Map[Int, SessionKey],
-                                senderRef:        ActorRef
+                                senderRef:        ActorRef,
+
+                                var sequenceNumber: Long
                               ) {
 
   import ReplicaConfig._

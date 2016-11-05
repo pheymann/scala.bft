@@ -21,7 +21,7 @@ trait ScalaBftSpec extends Specification {
                ): ReplicaConfig = {
     val sessionKeys = Map(replicaId -> testSessionKey)
 
-    ReplicaConfig(replicaId, view, expectedFaults, null, testChunkSize, "MD5", sessionKeys, sessionKeys, senderRef)
+    ReplicaConfig(replicaId, view, expectedFaults, null, testChunkSize, "MD5", sessionKeys, sessionKeys, senderRef, 0L)
   }
 
   def checkState(state: ConsensusState, roundIsTrue: String) = roundIsTrue match {

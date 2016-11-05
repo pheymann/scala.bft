@@ -5,6 +5,8 @@ import com.github.pheymann.scala.bft.consensus.ConsensusState
 
 trait ReplicaAction[A]
 
+case object RequestMessage extends ReplicaAction[Any]
+
 final case class ExecuteRequest(state: ConsensusState) extends ReplicaAction[ConsensusState]
 
 object ReplicaLifting {

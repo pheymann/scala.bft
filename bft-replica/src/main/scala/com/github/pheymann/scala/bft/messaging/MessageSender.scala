@@ -39,7 +39,7 @@ object MessageSender {
           .foreach { chunk =>
             val mac = AuthenticationGenerator.generateMAC(chunk, sessionKey)
 
-            send(SignedRequestChunk(delivery.receiverId, chunk, mac), config)
+            send(SignedRequestChunk(config.id, delivery.receiverId, config.sequenceNumber, chunk, mac), config)
           }
 
         true

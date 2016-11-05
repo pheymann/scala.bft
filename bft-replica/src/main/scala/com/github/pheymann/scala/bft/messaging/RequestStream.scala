@@ -2,6 +2,12 @@ package com.github.pheymann.scala.bft.messaging
 
 object RequestStream {
 
+  final case class RequestStreamState(sequenceNumber: Long) {
+
+    val chunks = collection.mutable.Queue[Array[Byte]]()
+
+  }
+
   def generateChunks(delivery: RequestDelivery, chunkSize: Int): Seq[Array[Byte]] = {
     RequestDelivery
       .toBytes(delivery)
@@ -11,7 +17,6 @@ object RequestStream {
 
   def collectChunks(chunk: Array[Byte], state: RequestStreamState): RequestStreamState = {
     state.chunks.enqueue(chunk)
-    state.isComplete = state.expectedChunks == state.chunks.length
     state
   }
 
@@ -19,13 +24,5 @@ object RequestStream {
     //TODO use mutable builder instead of immutable list concatenation
     RequestDelivery.fromBytes(state.chunks.foldLeft(Array.empty[Byte])(_ ++ _))
   }
-
-}
-
-final case class RequestStreamState(expectedChunks: Int) {
-
-  var isComplete = false
-
-  val chunks = collection.mutable.Queue[Array[Byte]]()
 
 }

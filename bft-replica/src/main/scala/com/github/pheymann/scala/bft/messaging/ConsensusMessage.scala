@@ -24,9 +24,38 @@ sealed trait ConsensusMessage extends SignableMessage {
 
 }
 
-final case class PrePrepareMessage(senderId: Int, receiverId: Int, view: Int, sequenceNumber: Long) extends ConsensusMessage
+final case class SignedConsensusMessage(message: ConsensusMessage, mac: Mac)
+
+final case class PrePrepareMessage(
+                                    senderId:   Int,
+                                    receiverId: Int,
+                                    view:       Int,
+                                    sequenceNumber: Long
+                                  ) extends ConsensusMessage
 final case class PrepareMessage(senderId: Int, receiverId: Int, view: Int, sequenceNumber: Long)  extends ConsensusMessage
 final case class CommitMessage(senderId: Int, receiverId: Int, view: Int, sequenceNumber: Long)   extends ConsensusMessage
 
-final case class SignedConsensusMessage(message: ConsensusMessage, mac: Mac)
-final case class SignedRequestChunk(receiverId: Int, chunk: Array[Byte], mac: Mac)
+sealed trait ChunkMessage {
+
+  def senderId:   Int
+  def receiverId: Int
+  def sequenceNumber: Long
+
+}
+
+sealed trait SignedChunkMessage extends ChunkMessage {
+
+  def mac: Mac
+
+}
+
+final case class SignedRequestChunk(
+                                     senderId:        Int,
+                                     receiverId:      Int,
+                                     sequenceNumber:  Long,
+                                     chunk:           Array[Byte],
+                                     mac:             Mac
+                                   ) extends SignedChunkMessage
+
+final case class StartChunk(senderId: Int, receiverId: Int, sequenceNumber:  Long) extends ChunkMessage
+final case class EndChunk(senderId: Int, receiverId: Int, sequenceNumber:  Long) extends ChunkMessage
