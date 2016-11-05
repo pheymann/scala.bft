@@ -2,6 +2,7 @@ package com.github.pheymann.scala.bft.replica
 
 import cats.{Id, ~>}
 import com.github.pheymann.scala.bft.consensus._
+import com.github.pheymann.scala.bft.messaging.SenderActor._
 import com.github.pheymann.scala.bft.messaging._
 import com.github.pheymann.scala.bft.replica.ReplicaLifting.Assign
 import com.github.pheymann.scala.bft.storage._
@@ -10,16 +11,17 @@ import org.slf4j.Logger
 class ReplicaProcessor(implicit config: ReplicaConfig) extends (ReplicaAction ~> Id) {
 
   import ReplicaProcessor._
+  import Send._
 
   override def apply[A](action: ReplicaAction[A]): Id[A] = action match {
     case ValidatePrePrepare(message, delivery, state) => MessageValidation.validatePrePrepare(message, delivery, state)
     case ValidatePrepare(message, state)  => MessageValidation.validatePrepare(message, state)
     case ValidateCommit(message, state)   => MessageValidation.validateCommit(message, state)
 
-    case SendClientRequest(request, state) => sendClientRequest(request, state)
-    case SendPrePrepareMessage(state) => sendConsensusMessage(state, prePrepareProvider)
-    case SendPrepareMessage(state)    => sendConsensusMessage(state, prepareProvider)
-    case SendCommitMessage(state)     => sendConsensusMessage(state, commitProvider)
+    case SendClientRequest(request) => sendClientRequest(request)
+    case SendPrePrepareMessage      => sendConsensusMessage(BroadcastPrePrepare)
+    case SendPrepareMessage         => sendConsensusMessage(BroadcastPrepare)
+    case SendCommitMessage          => sendConsensusMessage(BroadcastCommit)
 
     case StorePrePrepare(request, message) => ??? //TODO implemented storage
     case StorePrepare(message) => ??? //TODO implemented storage
@@ -38,36 +40,14 @@ object ReplicaProcessor {
     new ReplicaProcessor()
   }
 
-  private def sendConsensusMessage(state: ConsensusState, msgProvider: (Int, Int, Int, Long) => ConsensusMessage)
-                                  (implicit config: ReplicaConfig): Unit = {
-    config.senderSessions.foreach {
-      case (receiverId, sessionKey) =>
-        val message = msgProvider(state.replicaId, receiverId, state.view, state.sequenceNumber)
-
-        MessageSender.sendConsensusMessage(message)
-    }
+  private def sendClientRequest(request: ClientRequest)
+                               (implicit config: ReplicaConfig, send: Send): Unit = {
+    send.send(BroadcastRequest(request))
   }
 
-  private def prePrepareProvider(senderId: Int, receiverId: Int, view: Int, seqNumber: Long): ConsensusMessage = {
-    PrePrepareMessage(senderId, receiverId, view, seqNumber)
-  }
-
-  private def prepareProvider(senderId: Int, receiverId: Int, view: Int, seqNumber: Long): ConsensusMessage = {
-    PrepareMessage(senderId, receiverId, view, seqNumber)
-  }
-
-  private def commitProvider(senderId: Int, receiverId: Int, view: Int, seqNumber: Long): ConsensusMessage = {
-    CommitMessage(senderId, receiverId, view, seqNumber)
-  }
-
-  private def sendClientRequest(request: ClientRequest, state: ConsensusState)
-                               (implicit config: ReplicaConfig): Unit = {
-    config.senderSessions.foreach {
-      case (receiverId, sessionKey) =>
-        val delivery = RequestDelivery(state.replicaId, receiverId, state.view, state.sequenceNumber, request)
-
-        MessageSender.sendClientRequest(delivery)
-    }
+  private def sendConsensusMessage(broadcast: BroadcastType)
+                                  (implicit config: ReplicaConfig, send: Send): Unit = {
+    send.send(broadcast)
   }
 
 }

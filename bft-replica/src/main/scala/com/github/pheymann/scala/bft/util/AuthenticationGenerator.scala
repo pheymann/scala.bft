@@ -1,6 +1,6 @@
 package com.github.pheymann.scala.bft.util
 
-import java.security.{PrivateKey, Signature}
+import java.security.{MessageDigest, PrivateKey, Signature}
 
 import com.github.pheymann.scala.bft.{DigitalSignature, Mac, RequestDigest, SessionKey}
 import com.github.pheymann.scala.bft.messaging.SignableMessage
@@ -8,19 +8,23 @@ import com.github.pheymann.scala.bft.replica.ReplicaConfig
 
 object AuthenticationGenerator {
 
+  private def digestGenerator(implicit config: ReplicaConfig) = {
+    MessageDigest.getInstance(config.digestStrategy)
+  }
+
   def generateDigest(chunk: Array[Byte])
                     (implicit config: ReplicaConfig): RequestDigest = {
-    config.digestGenerator.digest(chunk)
+    digestGenerator.digest(chunk)
   }
 
   def generateDigest(message: SignableMessage)
                     (implicit config: ReplicaConfig): RequestDigest = {
-    config.digestGenerator.digest(message.toBytes)
+    digestGenerator.digest(message.toBytes)
   }
 
   def generateMAC(digest: RequestDigest, sessionKey: SessionKey)
                  (implicit config: ReplicaConfig): Mac = {
-    config.digestGenerator.digest(digest ++ sessionKey).slice(0, 10)
+    digestGenerator.digest(digest ++ sessionKey).slice(0, 10)
   }
 
   def generateMAC(message: SignableMessage, sessionKey: SessionKey)

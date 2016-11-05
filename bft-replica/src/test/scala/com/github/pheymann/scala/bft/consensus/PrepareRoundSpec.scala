@@ -16,8 +16,8 @@ class PrepareRoundSpec extends ScalaBftSpec {
     def apply[A](action: ReplicaAction[A]): Id[A] = action match {
       case ValidatePrepare(message, state) => MessageValidation.validatePrepare(message, state)
 
-      case StorePrepare(_)          => ()
-      case SendCommitMessage(state) => ()
+      case StorePrepare(_)    => ()
+      case SendCommitMessage  => ()
 
       case Assign(value) => value
     }
