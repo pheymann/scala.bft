@@ -35,7 +35,7 @@ class ReceiverActor(implicit config: ReplicaConfig) extends Actor with ActorLogg
       else
         sender() ! NoMessage
 
-    case OpenConnection(senderId) =>
+    case OpenConnection(senderId, sessionKey) =>
       if (connections.contains(senderId)) {
         logWarn(s"connection.exists: $senderId")
         sender() ! ConnectionAlreadyOpen
@@ -47,7 +47,7 @@ class ReceiverActor(implicit config: ReplicaConfig) extends Actor with ActorLogg
 
         logInfo(s"connection.opened: $senderId")
 
-        config.senderRef  ! OpenSenderConnection(senderId, sender())
+        config.senderRef  ! OpenSenderConnection(senderId, sender(), sessionKey)
         sender()          ! ConnectionSession(sessionKey)
       }
 
@@ -69,7 +69,7 @@ object ReceiverActor {
 
   final case class CloseConnection(senderId: Int)
 
-  final case class OpenConnection(senderId: Int)
+  final case class OpenConnection(senderId: Int, sessionKey: SessionKey)
   final case class ConnectionSession(sessionKey: SessionKey)
 
   case object ConnectionAlreadyOpen

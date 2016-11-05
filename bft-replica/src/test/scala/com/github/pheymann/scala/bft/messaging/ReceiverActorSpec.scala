@@ -22,7 +22,7 @@ class ReceiverActorSpec extends ScalaBftSpec {
       within(testDuration) {
         val receiverRef = system.actorOf(Props(new ReceiverActor()), "spec.receiver")
 
-        receiverRef ! OpenConnection(0)
+        receiverRef ! OpenConnection(0, testSessionKey)
         receiverRef ! signedMessage
         receiverRef ! Request
 
@@ -61,7 +61,7 @@ class ReceiverActorSpec extends ScalaBftSpec {
       within(testDuration) {
         val receiverRef = system.actorOf(Props(new ReceiverActor()), "spec.receiver")
 
-        receiverRef ! OpenConnection(0)
+        receiverRef ! OpenConnection(0, testSessionKey)
 
         expectMsgPF() {
           case msg: OpenSenderConnection => msg.receiverId should beEqualTo(0)
@@ -70,7 +70,7 @@ class ReceiverActorSpec extends ScalaBftSpec {
           case msg: ConnectionSession => msg.sessionKey.length should beEqualTo(16)
         }
 
-        receiverRef ! OpenConnection(0)
+        receiverRef ! OpenConnection(0, testSessionKey)
 
         expectMsg(ConnectionAlreadyOpen)
       }
@@ -89,7 +89,7 @@ class ReceiverActorSpec extends ScalaBftSpec {
 
         expectNoMsg(500.milliseconds)
 
-        receiverRef ! OpenConnection(0)
+        receiverRef ! OpenConnection(0, testSessionKey)
 
         expectMsgPF() {
           case msg: OpenSenderConnection => msg.receiverId should beEqualTo(0)

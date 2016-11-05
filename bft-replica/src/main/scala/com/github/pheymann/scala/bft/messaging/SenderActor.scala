@@ -1,16 +1,10 @@
 package com.github.pheymann.scala.bft.messaging
 
-import akka.pattern.ask
 import akka.actor.{Actor, ActorRef}
-import cats.data.Xor
 import com.github.pheymann.scala.bft._
-import com.github.pheymann.scala.bft.messaging.ReceiverActor.OpenConnection
 import com.github.pheymann.scala.bft.messaging.SenderConnectionHandler.SenderConnectionState
 import com.github.pheymann.scala.bft.replica.{ReplicaConfig, ReplicaEndpoint}
 import com.github.pheymann.scala.bft.util.{ActorLoggingUtil, AuthenticationGenerator}
-
-import scala.concurrent.Await
-import scala.util.control.NonFatal
 
 class SenderActor(implicit config: ReplicaConfig) extends Actor with ActorLoggingUtil {
 
@@ -23,21 +17,21 @@ class SenderActor(implicit config: ReplicaConfig) extends Actor with ActorLoggin
       connections.foreach { case (receiverId, (state, receiverRef)) =>
         val message = SenderConnectionHandler.prePrepare(receiverId)
 
-        receiverRef ! AuthenticationGenerator.generateMAC(message, state.sessionKey)
+        sendMessage(receiverRef, message, state)
       }
 
     case BroadcastPrepare =>
       connections.foreach { case (receiverId, (state, receiverRef)) =>
         val message = SenderConnectionHandler.prepare(receiverId)
 
-        receiverRef ! AuthenticationGenerator.generateMAC(message, state.sessionKey)
+        sendMessage(receiverRef, message, state)
       }
 
     case BroadcastCommit =>
       connections.foreach { case (receiverId, (state, receiverRef)) =>
         val message = SenderConnectionHandler.commit(receiverId)
 
-        receiverRef ! AuthenticationGenerator.generateMAC(message, state.sessionKey)
+        sendMessage(receiverRef, message, state)
       }
 
     case BroadcastRequest(request) =>
@@ -57,15 +51,11 @@ class SenderActor(implicit config: ReplicaConfig) extends Actor with ActorLoggin
         receiverRef ! EndChunk(config.id, delivery.receiverId, config.sequenceNumber)
       }
 
-    case OpenSenderConnection(receiverId, receiverRef) =>
+    case OpenSenderConnection(receiverId, receiverRef, sessionKey) =>
       if (connections.contains(receiverId))
         logWarn(s"connection.exists: $receiverId")
-      else {
-        requestSessionKey(receiverRef) match {
-          case Xor.Right(sessionKey)  => connections += receiverId -> (SenderConnectionState(sessionKey), receiverRef)
-          case Xor.Left(cause)        => logError(cause, "error.request.session-key")
-        }
-      }
+      else
+        connections += receiverId -> (SenderConnectionState(sessionKey), receiverRef)
 
     case CloseSenderConnection(receiverId) =>
       if (connections.remove(receiverId).isDefined)
@@ -75,21 +65,34 @@ class SenderActor(implicit config: ReplicaConfig) extends Actor with ActorLoggin
 
   }
 
-  private def requestSessionKey(receiverRef: ActorRef)
-                               (implicit config: ReplicaConfig): Xor[Throwable, SessionKey] = {
-    import config.keyRequestTimeout
+  private def sendMessage(
+                           receiverRef: ActorRef,
+                           message:     ConsensusMessage,
+                           state:       SenderConnectionState
+                         ): Unit = {
+    val signedMessage = SignedConsensusMessage(
+      message,
+      AuthenticationGenerator.generateMAC(message, state.sessionKey)
+    )
 
-    try {
-      Xor.right(
-        Await
-          .result(receiverRef ? OpenConnection(config.id), config.keyRequestDuration)
-          .asInstanceOf[SessionKey]
-      )
-    }
-    catch {
-      case NonFatal(cause) => Xor.left(cause)
-    }
+    receiverRef ! signedMessage
   }
+
+//  private def requestSessionKey(receiverRef: ActorRef)
+//                               (implicit config: ReplicaConfig): Xor[Throwable, SessionKey] = {
+//    import config.keyRequestTimeout
+//
+//    try {
+//      Xor.right(
+//        Await
+//          .result(receiverRef ? OpenConnection(config.id), config.keyRequestDuration)
+//          .asInstanceOf[SessionKey]
+//      )
+//    }
+//    catch {
+//      case NonFatal(cause) => Xor.left(cause)
+//    }
+//  }
 
 }
 
@@ -103,7 +106,7 @@ object SenderActor {
 
   final case class BroadcastRequest(request: ClientRequest) extends BroadcastType
 
-  final case class OpenSenderConnection(receiverId: Int, receiverRef: ActorRef)
+  final case class OpenSenderConnection(receiverId: Int, receiverRef: ActorRef, sessionKey: SessionKey)
   final case class CloseSenderConnection(receiverId: Int)
 
   def url(endpoint: ReplicaEndpoint, receiverName: String): String = {
