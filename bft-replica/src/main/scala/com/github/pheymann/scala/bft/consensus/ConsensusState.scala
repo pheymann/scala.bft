@@ -1,6 +1,7 @@
 package com.github.pheymann.scala.bft.consensus
 
-import org.slf4j.{Logger, LoggerFactory}
+import com.github.pheymann.scala.bft.replica.{ReplicaConfig, ReplicaContext}
+import org.slf4j.LoggerFactory
 
 case class ConsensusState(
                             replicaId:      Int,
@@ -33,6 +34,12 @@ object ConsensusState {
       state.isPrepared,
       state.isCommited
     )
+  }
+
+  def fromContext(context: ReplicaContext): ConsensusState = {
+    import context.config
+
+    ConsensusState(config.id, context.view, context.sequenceNumber, config.lowWatermark, config.highWatermark)
   }
 
 }

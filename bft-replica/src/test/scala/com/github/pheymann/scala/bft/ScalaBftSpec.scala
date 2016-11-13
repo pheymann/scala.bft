@@ -3,7 +3,7 @@ package com.github.pheymann.scala.bft
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{ImplicitSender, TestKit}
 import com.github.pheymann.scala.bft.consensus.ConsensusState
-import com.github.pheymann.scala.bft.replica.ReplicaConfig
+import com.github.pheymann.scala.bft.replica.{ReplicaConfig, ReplicaContext}
 import org.specs2.mutable.{After, Specification}
 
 import scala.concurrent.Await
@@ -15,13 +15,23 @@ trait ScalaBftSpec extends Specification {
   val testSessionKey  = (0 until 16).map(_.toByte).toArray
   val testChunkSize   = 5
 
+  def newContext(
+                  isLeader: Boolean,
+                  view:     Int,
+
+                  expectedFaults: Int,
+
+                  senderRef:   ActorRef = null,
+                  receiverRef: ActorRef = null
+                ): ReplicaContext = {
+    ReplicaContext(isLeader, view, receiverRef, senderRef, 0L)(newConfig(0, expectedFaults))
+  }
+
   def newConfig(
                  replicaId: Int,
-                 view:      Int,
-                 expectedFaults:  Int,
-                 senderRef:       ActorRef = null
+                 expectedFaults:  Int
                ): ReplicaConfig = {
-    ReplicaConfig(replicaId, view, expectedFaults, null, testChunkSize, "MD5", senderRef, 0L)
+    ReplicaConfig(replicaId, expectedFaults, 0, 1, null, null, testChunkSize, "MD5")
   }
 
   def checkState(state: ConsensusState, roundIsTrue: String) = roundIsTrue match {

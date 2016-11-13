@@ -8,7 +8,7 @@ class SenderActorSpec extends ScalaBftSpec {
 
   "The SenderActor" should {
     "broadcast a consensus message to all known replicas" in new WithActorSystem {
-      implicit val testConfig = newConfig(0, 0, 0, self)
+      implicit val context = newContext(false, 0, 0, self)
 
       within(testDuration) {
         val senderRef = system.actorOf(Props(new SenderActor()), "spec-sender")
@@ -27,7 +27,7 @@ class SenderActorSpec extends ScalaBftSpec {
     }
 
     "broadcast a request as stream to all known replicas" in new WithActorSystem {
-      implicit val testConfig = newConfig(0, 0, 0, self)
+      implicit val context = newContext(false, 0, 0, self)
 
       val request   = ClientRequest(0, 0L, Array.empty[Byte])
       val delivery  = RequestDelivery(0, 0, 0, 0L, request)

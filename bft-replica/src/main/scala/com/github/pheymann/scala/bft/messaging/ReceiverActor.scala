@@ -4,10 +4,10 @@ import akka.actor.Actor
 import com.github.pheymann.scala.bft.SessionKey
 import com.github.pheymann.scala.bft.messaging.ReceiverConnectionHandler.ReceiverConnectionState
 import com.github.pheymann.scala.bft.messaging.SenderActor.{CloseSenderConnection, OpenSenderConnection}
-import com.github.pheymann.scala.bft.replica.ReplicaConfig
+import com.github.pheymann.scala.bft.replica.ReplicaContext
 import com.github.pheymann.scala.bft.util.{ActorLoggingUtil, SessionKeyGenerator}
 
-class ReceiverActor(implicit config: ReplicaConfig) extends Actor with ActorLoggingUtil {
+class ReceiverActor(implicit replicaContext: ReplicaContext) extends Actor with ActorLoggingUtil {
 
   import ReceiverActor._
 
@@ -15,6 +15,8 @@ class ReceiverActor(implicit config: ReplicaConfig) extends Actor with ActorLogg
 
   private val queue       = collection.mutable.Queue[Any]()
   private val connections = collection.mutable.Map[Int, ReceiverConnectionState]()
+
+  import replicaContext.config
 
   override def receive = {
     case message: SignedConsensusMessage =>
@@ -41,20 +43,20 @@ class ReceiverActor(implicit config: ReplicaConfig) extends Actor with ActorLogg
         sender() ! ConnectionAlreadyOpen
       }
       else {
-        val sessionKey = SessionKeyGenerator.generateSessionKey(senderId, config.id)
+        val sessionKey = SessionKeyGenerator.generateSessionKey(senderId, replicaContext.config.id)
 
         connections += senderId -> ReceiverConnectionState(senderId, sessionKey)
 
         logInfo(s"connection.opened: $senderId")
 
-        config.senderRef  ! OpenSenderConnection(senderId, sender(), sessionKey)
+        replicaContext.senderRef  ! OpenSenderConnection(senderId, sender(), sessionKey)
         sender()          ! ConnectionSession(sessionKey)
       }
 
     case CloseConnection(senderId) =>
       if (connections.remove(senderId).isDefined) {
         logInfo(s"connection.closed: $senderId")
-        config.senderRef ! CloseSenderConnection(senderId)
+        replicaContext.senderRef ! CloseSenderConnection(senderId)
       }
       else
         logWarn(s"connection.not.exists: $senderId")

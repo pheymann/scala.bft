@@ -6,7 +6,9 @@ import com.github.pheymann.scala.bft.util.AuthenticationGenerator._
 
 class ReceiverConnectionHandlerSpec extends ScalaBftSpec {
 
-  implicit val testConfig = newConfig(0, 0, 0)
+  implicit val testContext = newContext(false, 0, 0)
+
+  import testContext.config
 
   "The ReceiverConnectionHandler" should {
     "verify incoming ConsensusMessages and return them if no stream is active" in {
@@ -51,10 +53,10 @@ class ReceiverConnectionHandlerSpec extends ScalaBftSpec {
       ReceiverConnectionHandler.handleConsensus(signedMessage, state) should beEqualTo(None)
 
       RequestStream
-        .generateChunks(delivery, testConfig.chunkSize)
+        .generateChunks(delivery, testContext.config.chunkSize)
         .foreach { chunk =>
           val mac         = generateMAC(generateDigest(chunk), state.sessionKey)
-          val signedChunk = SignedRequestChunk(testConfig.id, delivery.receiverId, testConfig.sequenceNumber, chunk, mac)
+          val signedChunk = SignedRequestChunk(testContext.config.id, delivery.receiverId, testContext.sequenceNumber, chunk, mac)
 
           ReceiverConnectionHandler.handleStreams(signedChunk, state)
         }
@@ -79,11 +81,11 @@ class ReceiverConnectionHandlerSpec extends ScalaBftSpec {
       ReceiverConnectionHandler.handleConsensus(signedMessage, state) should beEqualTo(None)
 
       RequestStream
-        .generateChunks(delivery, testConfig.chunkSize)
+        .generateChunks(delivery, testContext.config.chunkSize)
         .foreach { chunk =>
           // creates invalid macs as no digest is created for chunk
           val mac         = generateMAC(chunk, state.sessionKey)
-          val signedChunk = SignedRequestChunk(testConfig.id, delivery.receiverId, testConfig.sequenceNumber, chunk, mac)
+          val signedChunk = SignedRequestChunk(testContext.config.id, delivery.receiverId, testContext.sequenceNumber, chunk, mac)
 
           ReceiverConnectionHandler.handleStreams(signedChunk, state)
         }

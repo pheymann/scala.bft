@@ -1,16 +1,15 @@
 package com.github.pheymann.scala.bft.consensus
 
 import com.github.pheymann.scala.bft.messaging.{ConsensusMessage, PrePrepareMessage, PrepareMessage, RequestDelivery}
-import com.github.pheymann.scala.bft.replica.ReplicaConfig
+import com.github.pheymann.scala.bft.replica.ReplicaContext
 import com.github.pheymann.scala.bft.util.ScalaBftLogger
-import org.slf4j.Logger
 
 object MessageValidation {
 
   private[consensus] def validateMessage(message: ConsensusMessage, state: ConsensusState)
-                                        (implicit config: ReplicaConfig): Boolean = {
+                                        (implicit context: ReplicaContext): Boolean = {
     message.receiverId  == state.replicaId &&
-    message.view        == config.view &&
+    message.view        == context.view &&
     message.sequenceNumber >= state.lowWatermark &&
     message.sequenceNumber <= state.highWatermark
   }
@@ -38,13 +37,13 @@ object MessageValidation {
   }
 
   def validatePrepare(message: PrepareMessage, state: ConsensusState)
-                     (implicit config: ReplicaConfig): ConsensusState = {
+                     (implicit context: ReplicaContext): ConsensusState = {
     import state.log
 
     if (validateMessage(message, state)) {
       state.receivedPrepares += 1
 
-      if (state.receivedPrepares == config.expectedPrepares) {
+      if (state.receivedPrepares == context.config.expectedPrepares) {
         ScalaBftLogger.logInfo(s"${message.toLog}.prepare.consent")
         state.isPrepared = true
       }
@@ -56,13 +55,13 @@ object MessageValidation {
   }
 
   def validateCommit(message: ConsensusMessage, state: ConsensusState)
-                    (implicit config: ReplicaConfig): ConsensusState = {
+                    (implicit context: ReplicaContext): ConsensusState = {
     import state.log
 
     if (validateMessage(message, state)) {
       state.receivedCommits += 1
 
-      if (state.receivedCommits == config.expectedCommits) {
+      if (state.receivedCommits == context.config.expectedCommits) {
         ScalaBftLogger.logInfo(s"${message.toLog}.commit.consent")
         state.isCommited = true
       }

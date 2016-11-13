@@ -6,9 +6,8 @@ import com.github.pheymann.scala.bft.messaging.SenderActor._
 import com.github.pheymann.scala.bft.messaging._
 import com.github.pheymann.scala.bft.replica.ReplicaLifting.Assign
 import com.github.pheymann.scala.bft.storage._
-import org.slf4j.Logger
 
-class ReplicaProcessor(implicit config: ReplicaConfig) extends (ReplicaAction ~> Id) {
+class ReplicaProcessor()(implicit context: ReplicaContext) extends (ReplicaAction ~> Id) {
 
   import ReplicaProcessor._
   import Send._
@@ -24,8 +23,10 @@ class ReplicaProcessor(implicit config: ReplicaConfig) extends (ReplicaAction ~>
     case SendCommitMessage          => sendConsensusMessage(BroadcastCommit)
 
     case StorePrePrepare(request, message) => ??? //TODO implemented storage
-    case StorePrepare(message) => ??? //TODO implemented storage
-    case StoreCommit(message)  => ??? //TODO implemented storage
+    case StorePrepare(message)  => ??? //TODO implemented storage
+    case StoreCommit(message)   => ??? //TODO implemented storage
+    case GetLastSequenceNumber  => ???
+    case GetLastView            => ???
 
     case ExecuteRequest(state) => ??? //TODO implement execute request
 
@@ -36,17 +37,17 @@ class ReplicaProcessor(implicit config: ReplicaConfig) extends (ReplicaAction ~>
 
 object ReplicaProcessor {
 
-  def apply(implicit config: ReplicaConfig, log: Logger): ReplicaProcessor = {
-    new ReplicaProcessor()
+  def apply(context: ReplicaContext): ReplicaProcessor = {
+    new ReplicaProcessor()(context)
   }
 
   private def sendClientRequest(request: ClientRequest)
-                               (implicit config: ReplicaConfig, send: Send): Unit = {
+                               (implicit context: ReplicaContext, send: Send): Unit = {
     send.send(BroadcastRequest(request))
   }
 
   private def sendConsensusMessage(broadcast: BroadcastType)
-                                  (implicit config: ReplicaConfig, send: Send): Unit = {
+                                  (implicit context: ReplicaContext, send: Send): Unit = {
     send.send(broadcast)
   }
 

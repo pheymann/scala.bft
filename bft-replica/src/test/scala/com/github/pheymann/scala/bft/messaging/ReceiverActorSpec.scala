@@ -14,7 +14,9 @@ class ReceiverActorSpec extends ScalaBftSpec {
 
   "The ReceiverActor" should {
     "verify and buffer incoming messages from known connections" in new WithActorSystem {
-      implicit val testConfig = newConfig(0, 0, 0, self)
+      implicit val context = newContext(false, 0, 0, self)
+
+      import context.config
 
       val message       = PrePrepareMessage(0, 0, 0, 0L)
       val signedMessage = SignedConsensusMessage(message, generateMAC(message, testSessionKey))
@@ -37,7 +39,9 @@ class ReceiverActorSpec extends ScalaBftSpec {
     }
 
     "ignore incoming messages from unknown connections" in new WithActorSystem {
-      implicit val testConfig = newConfig(0, 0, 0, self)
+      implicit val context = newContext(false, 0, 0, self)
+
+      import context.config
 
       val message       = PrePrepareMessage(0, 0, 0, 0L)
       val signedMessage = SignedConsensusMessage(message, generateMAC(message, testSessionKey))
@@ -53,7 +57,9 @@ class ReceiverActorSpec extends ScalaBftSpec {
     }
 
     "open a connection only if it doesn't exists already" in new WithActorSystem {
-      implicit val testConfig = newConfig(0, 0, 0, self)
+      implicit val context = newContext(false, 0, 0, self)
+
+      import context.config
 
       val message       = PrePrepareMessage(0, 0, 0, 0L)
       val signedMessage = SignedConsensusMessage(message, generateMAC(message, testSessionKey))
@@ -77,7 +83,9 @@ class ReceiverActorSpec extends ScalaBftSpec {
     }
 
     "close a connection only if it exists" in new WithActorSystem {
-      implicit val testConfig = newConfig(0, 0, 0, self)
+      implicit val context = newContext(false, 0, 0, self)
+
+      import context.config
 
       val message       = PrePrepareMessage(0, 0, 0, 0L)
       val signedMessage = SignedConsensusMessage(message, generateMAC(message, testSessionKey))

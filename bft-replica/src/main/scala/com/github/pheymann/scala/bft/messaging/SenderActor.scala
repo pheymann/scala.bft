@@ -3,12 +3,13 @@ package com.github.pheymann.scala.bft.messaging
 import akka.actor.{Actor, ActorRef}
 import com.github.pheymann.scala.bft._
 import com.github.pheymann.scala.bft.messaging.SenderConnectionHandler.SenderConnectionState
-import com.github.pheymann.scala.bft.replica.{ReplicaConfig, ReplicaEndpoint}
+import com.github.pheymann.scala.bft.replica.{ReplicaContext, ReplicaEndpoint}
 import com.github.pheymann.scala.bft.util.{ActorLoggingUtil, AuthenticationGenerator}
 
-class SenderActor(implicit config: ReplicaConfig) extends Actor with ActorLoggingUtil {
+class SenderActor(implicit replicaContext: ReplicaContext) extends Actor with ActorLoggingUtil {
 
   import SenderActor._
+  import replicaContext.config
 
   private val connections = collection.mutable.Map[Int, (SenderConnectionState, ActorRef)]()
 
@@ -36,19 +37,19 @@ class SenderActor(implicit config: ReplicaConfig) extends Actor with ActorLoggin
 
     case BroadcastRequest(request) =>
       connections.foreach { case (receiverId, (state, receiverRef)) =>
-        val delivery = RequestDelivery(config.id, receiverId, config.view, config.sequenceNumber, request)
+        val delivery = RequestDelivery(config.id, receiverId, replicaContext.view, replicaContext.sequenceNumber, request)
 
-        receiverRef ! StartChunk(config.id, delivery.receiverId, config.sequenceNumber)
+        receiverRef ! StartChunk(config.id, delivery.receiverId, replicaContext.sequenceNumber)
 
         RequestStream
           .generateChunks(delivery, config.chunkSize)
           .foreach { chunk =>
             val mac = AuthenticationGenerator.generateMAC(chunk, state.sessionKey)
 
-            receiverRef ! SignedRequestChunk(config.id, delivery.receiverId, config.sequenceNumber, chunk, mac)
+            receiverRef ! SignedRequestChunk(config.id, delivery.receiverId, replicaContext.sequenceNumber, chunk, mac)
           }
 
-        receiverRef ! EndChunk(config.id, delivery.receiverId, config.sequenceNumber)
+        receiverRef ! EndChunk(config.id, delivery.receiverId, replicaContext.sequenceNumber)
       }
 
     case OpenSenderConnection(receiverId, receiverRef, sessionKey) =>
