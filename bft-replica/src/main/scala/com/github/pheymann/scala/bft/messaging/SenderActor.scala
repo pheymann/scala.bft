@@ -1,114 +1,54 @@
 package com.github.pheymann.scala.bft.messaging
 
 import akka.actor.{Actor, ActorRef}
-import com.github.pheymann.scala.bft._
-import com.github.pheymann.scala.bft.messaging.SenderConnectionHandler.SenderConnectionState
-import com.github.pheymann.scala.bft.replica.{ReplicaContext, ReplicaEndpoint}
-import com.github.pheymann.scala.bft.util.{ActorLoggingUtil, AuthenticationGenerator}
+import com.github.pheymann.scala.bft.replica.ReplicaEndpoint
+import com.github.pheymann.scala.bft.util.ActorLoggingUtil
 
-class SenderActor(implicit replicaContext: ReplicaContext) extends Actor with ActorLoggingUtil {
+class SenderActor extends Actor with ActorLoggingUtil {
 
   import SenderActor._
-  import replicaContext.config
 
-  private val connections = collection.mutable.Map[Int, (SenderConnectionState, ActorRef)]()
+  private val connections = collection.mutable.Map[Int, ActorRef]()
 
   override def receive = {
-    case BroadcastPrePrepare =>
-      connections.foreach { case (receiverId, (state, receiverRef)) =>
-        val message = SenderConnectionHandler.prePrepare(receiverId)
+    case SendConsensusMsg(receiverId, message) => send(receiverId, _ ! message)
 
-        sendMessage(receiverRef, message, state)
-      }
+    case SendStream(receiverId, stream) => send(receiverId, receiverRef => {
+      stream.foreach(receiverRef ! _)
+    })
 
-    case BroadcastPrepare =>
-      connections.foreach { case (receiverId, (state, receiverRef)) =>
-        val message = SenderConnectionHandler.prepare(receiverId)
-
-        sendMessage(receiverRef, message, state)
-      }
-
-    case BroadcastCommit =>
-      connections.foreach { case (receiverId, (state, receiverRef)) =>
-        val message = SenderConnectionHandler.commit(receiverId)
-
-        sendMessage(receiverRef, message, state)
-      }
-
-    case BroadcastRequest(request) =>
-      connections.foreach { case (receiverId, (state, receiverRef)) =>
-        val delivery = RequestDelivery(config.id, receiverId, replicaContext.view, replicaContext.sequenceNumber, request)
-
-        receiverRef ! StartChunk(config.id, delivery.receiverId, replicaContext.sequenceNumber)
-
-        RequestStream
-          .generateChunks(delivery, config.chunkSize)
-          .foreach { chunk =>
-            val mac = AuthenticationGenerator.generateMAC(chunk, state.sessionKey)
-
-            receiverRef ! SignedRequestChunk(config.id, delivery.receiverId, replicaContext.sequenceNumber, chunk, mac)
-          }
-
-        receiverRef ! EndChunk(config.id, delivery.receiverId, replicaContext.sequenceNumber)
-      }
-
-    case OpenSenderConnection(receiverId, receiverRef, sessionKey) =>
+    case OpenSenderConnection(receiverId, receiverRef) =>
       if (connections.contains(receiverId))
-        logWarn(s"connection.exists: $receiverId")
+        logWarn(s"exists: $receiverId")
       else
-        connections += receiverId -> (SenderConnectionState(sessionKey), receiverRef)
+        connections += receiverId -> receiverRef
 
     case CloseSenderConnection(receiverId) =>
       if (connections.remove(receiverId).isDefined)
-        logInfo(s"connection.closed: $receiverId")
+        logInfo(s"closed: $receiverId")
       else
-        logWarn(s"connection.not.exists: $receiverId")
+        logWarn(s"not.exists: $receiverId")
 
   }
 
-  private def sendMessage(
-                           receiverRef: ActorRef,
-                           message:     ConsensusMessage,
-                           state:       SenderConnectionState
-                         ): Unit = {
-    val signedMessage = SignedConsensusMessage(
-      message,
-      AuthenticationGenerator.generateMAC(message, state.sessionKey)
-    )
-
-    receiverRef ! signedMessage
+  def send(receiverId: Int, action: ActorRef => Unit): Unit = {
+    connections.get(receiverId) match {
+      case Some(receiverRef)  => action(receiverRef)
+      case None               => logError(s"no-connection: $receiverId")
+    }
   }
-
-//  private def requestSessionKey(receiverRef: ActorRef)
-//                               (implicit config: ReplicaConfig): Xor[Throwable, SessionKey] = {
-//    import config.keyRequestTimeout
-//
-//    try {
-//      Xor.right(
-//        Await
-//          .result(receiverRef ? OpenConnection(config.id), config.keyRequestDuration)
-//          .asInstanceOf[SessionKey]
-//      )
-//    }
-//    catch {
-//      case NonFatal(cause) => Xor.left(cause)
-//    }
-//  }
 
 }
 
 object SenderActor {
 
-  sealed trait BroadcastType
+  sealed trait SenderOperations
 
-  case object BroadcastPrePrepare extends BroadcastType
-  case object BroadcastPrepare    extends BroadcastType
-  case object BroadcastCommit     extends BroadcastType
+  final case class SendConsensusMsg(receiverId: Int, message: ConsensusMessage) extends SenderOperations
+  final case class SendStream(receiverId: Int, stream: List[ChunkMessage])      extends SenderOperations
 
-  final case class BroadcastRequest(request: ClientRequest) extends BroadcastType
-
-  final case class OpenSenderConnection(receiverId: Int, receiverRef: ActorRef, sessionKey: SessionKey)
-  final case class CloseSenderConnection(receiverId: Int)
+  final case class OpenSenderConnection(receiverId: Int, receiverRef: ActorRef) extends SenderOperations
+  final case class CloseSenderConnection(receiverId: Int)                       extends SenderOperations
 
   def url(endpoint: ReplicaEndpoint, receiverName: String): String = {
     s"akka.tcp://scala-bft-replica@%s:%d/user/%s".format(
@@ -118,6 +58,6 @@ object SenderActor {
     )
   }
 
-  val name = "sender"
+  val name = "sender.io.connection"
 
 }

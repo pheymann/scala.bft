@@ -4,7 +4,7 @@ trait Versions {
 
   val akkaVersion = "2.4.8"
 
-  val specs2Verison = "3.8.4"
+  val specs2Version = "3.8.4"
 
   val catsVersion = "0.7.2"
 
@@ -20,11 +20,11 @@ trait Libraries extends Versions {
   val akkaStream  = "com.typesafe.akka" %% "akka-stream"  % akkaVersion
   val akkaTest    = "com.typesafe.akka" %% "akka-testkit" % akkaVersion
 
-  val specs2  = "org.specs2"      %% "specs2-core"    % specs2Verison
+  val specs2  = "org.specs2"      %% "specs2-core"    % specs2Version
   val logback = "ch.qos.logback"  % "logback-classic" % logbackVersion
 
-  val catsCore  = "org.typelevel" %% "cats-core" % catsVersion
-  val catsFree  = "org.typelevel" %% "cats-free" % catsVersion
+  val catsCore  = "org.typelevel" %% "cats-core"    % catsVersion
+  val catsFree  = "org.typelevel" %% "cats-free"    % catsVersion
 
 }
 
@@ -36,12 +36,12 @@ object Dependencies extends Libraries {
     akkaRemote  % Compile,
     akkaStream  % Compile,
 
+    catsCore  % Compile,
+    catsFree  % Compile,
+
     akkaTest  % Test,
     specs2    % Test,
-    logback   % Test,
-
-    catsCore % Compile,
-    catsFree % Compile
+    logback   % Test
   )
 
 }

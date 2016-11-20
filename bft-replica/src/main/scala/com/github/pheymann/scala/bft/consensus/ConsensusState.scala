@@ -6,10 +6,7 @@ import org.slf4j.LoggerFactory
 case class ConsensusState(
                             replicaId:      Int,
                             view:           Int,
-                            sequenceNumber: Long,
-
-                            lowWatermark:   Long,
-                            highWatermark:  Long
+                            sequenceNumber: Long
                          ) {
 
   var isPrePrepared = false
@@ -39,7 +36,7 @@ object ConsensusState {
   def fromContext(context: ReplicaContext): ConsensusState = {
     import context.config
 
-    ConsensusState(config.id, context.view, context.sequenceNumber, config.lowWatermark, config.highWatermark)
+    ConsensusState(config.id, context.view, context.sequenceNumber)
   }
 
 }

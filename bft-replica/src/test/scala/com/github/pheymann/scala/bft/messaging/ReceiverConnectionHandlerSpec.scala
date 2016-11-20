@@ -1,7 +1,7 @@
 package com.github.pheymann.scala.bft.messaging
 
 import com.github.pheymann.scala.bft.ScalaBftSpec
-import com.github.pheymann.scala.bft.messaging.ReceiverConnectionHandler.ReceiverConnectionState
+import com.github.pheymann.scala.bft.messaging.Receiver.ReceiverConnectionState
 import com.github.pheymann.scala.bft.util.AuthenticationGenerator._
 
 class ReceiverConnectionHandlerSpec extends ScalaBftSpec {
@@ -17,7 +17,7 @@ class ReceiverConnectionHandlerSpec extends ScalaBftSpec {
 
       val state = ReceiverConnectionState(0, testSessionKey)
 
-      ReceiverConnectionHandler.handleConsensus(signedMessage, state) should beEqualTo(Some(message))
+      Receiver.handleConsensus(signedMessage, state) should beEqualTo(Some(message))
     }
 
     "verify incoming ConsensusMessages and buffer them if a stream is active" in {
@@ -26,8 +26,8 @@ class ReceiverConnectionHandlerSpec extends ScalaBftSpec {
 
       val state = ReceiverConnectionState(0, testSessionKey)
 
-      ReceiverConnectionHandler.handleStreams(StartChunk(0, 0, 0L), state)
-      ReceiverConnectionHandler.handleConsensus(signedMessage, state) should beEqualTo(None)
+      Receiver.handleStreams(StartChunk(0, 0, 0L), state)
+      Receiver.handleConsensus(signedMessage, state) should beEqualTo(None)
     }
 
     "verify incoming ConsensusMessages and ignore them if they are invalid" in {
@@ -37,7 +37,7 @@ class ReceiverConnectionHandlerSpec extends ScalaBftSpec {
       val invalidKey  = Array[Byte](15) ++ testSessionKey.slice(0, 15)
       val state       = ReceiverConnectionState(0, invalidKey)
 
-      ReceiverConnectionHandler.handleConsensus(signedMessage, state) should beEqualTo(None)
+      Receiver.handleConsensus(signedMessage, state) should beEqualTo(None)
     }
 
     "verify and buffer all messages and chunks until a stream is closed" in {
@@ -49,8 +49,8 @@ class ReceiverConnectionHandlerSpec extends ScalaBftSpec {
 
       val state = ReceiverConnectionState(0, testSessionKey)
 
-      ReceiverConnectionHandler.handleStreams(StartChunk(0, 0, 0L), state)
-      ReceiverConnectionHandler.handleConsensus(signedMessage, state) should beEqualTo(None)
+      Receiver.handleStreams(StartChunk(0, 0, 0L), state)
+      Receiver.handleConsensus(signedMessage, state) should beEqualTo(None)
 
       RequestStream
         .generateChunks(delivery, testContext.config.chunkSize)
@@ -58,10 +58,10 @@ class ReceiverConnectionHandlerSpec extends ScalaBftSpec {
           val mac         = generateMAC(generateDigest(chunk), state.sessionKey)
           val signedChunk = SignedRequestChunk(testContext.config.id, delivery.receiverId, testContext.sequenceNumber, chunk, mac)
 
-          ReceiverConnectionHandler.handleStreams(signedChunk, state)
+          Receiver.handleStreams(signedChunk, state)
         }
 
-      val resultOpt = ReceiverConnectionHandler.handleStreams(EndChunk(0, 0, 0L), state)
+      val resultOpt = Receiver.handleStreams(EndChunk(0, 0, 0L), state)
 
       resultOpt.isDefined     should beTrue
       resultOpt.get.nonEmpty  should beTrue
@@ -77,8 +77,8 @@ class ReceiverConnectionHandlerSpec extends ScalaBftSpec {
 
       val state = ReceiverConnectionState(0, testSessionKey)
 
-      ReceiverConnectionHandler.handleStreams(StartChunk(0, 0, 0L), state)
-      ReceiverConnectionHandler.handleConsensus(signedMessage, state) should beEqualTo(None)
+      Receiver.handleStreams(StartChunk(0, 0, 0L), state)
+      Receiver.handleConsensus(signedMessage, state) should beEqualTo(None)
 
       RequestStream
         .generateChunks(delivery, testContext.config.chunkSize)
@@ -87,10 +87,10 @@ class ReceiverConnectionHandlerSpec extends ScalaBftSpec {
           val mac         = generateMAC(chunk, state.sessionKey)
           val signedChunk = SignedRequestChunk(testContext.config.id, delivery.receiverId, testContext.sequenceNumber, chunk, mac)
 
-          ReceiverConnectionHandler.handleStreams(signedChunk, state)
+          Receiver.handleStreams(signedChunk, state)
         }
 
-      ReceiverConnectionHandler.handleStreams(EndChunk(0, 0, 0L), state) should beEqualTo(Some(Seq(message)))
+      Receiver.handleStreams(EndChunk(0, 0, 0L), state) should beEqualTo(Some(Seq(message)))
     }
   }
 

@@ -2,26 +2,23 @@ package com.github.pheymann.scala.bft.consensus
 
 import cats.free.Free
 import com.github.pheymann.scala.bft.messaging.CommitMessage
-import com.github.pheymann.scala.bft.replica.{ExecuteRequest, ReplicaAction}
-import com.github.pheymann.scala.bft.storage.StoreCommit
+import ValidationAction._
+import com.github.pheymann.scala.bft.storage.StorageAction._
+import com.github.pheymann.scala.bft.replica.ServiceAction
+import ServiceAction._
 
 object CommitRound {
 
-  import com.github.pheymann.scala.bft.replica.ReplicaLifting._
-
-  def processCommit(message: CommitMessage, state: ConsensusState): Free[ReplicaAction, ConsensusState] = {
+  def processCommit(message: CommitMessage, state: ConsensusState): Free[ServiceAction, ConsensusState] = {
     for {
-      validatedState <- process(ValidateCommit(message, state))
-      processedState <- {
+      validatedState  <- validate(message, state)
+      _               <- {
         if (validatedState.isCommited)
-          for {
-            _ <- process(StoreCommit(message))
-            responseState <- process(ExecuteRequest(validatedState))
-          } yield responseState
+          store(message)
         else
-          assign(validatedState)
+          empty
       }
-    } yield processedState
+    } yield validatedState
   }
 
 }

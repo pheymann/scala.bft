@@ -4,7 +4,7 @@ import cats._
 import com.github.pheymann.scala.bft.ScalaBftSpec
 import com.github.pheymann.scala.bft.messaging.CommitMessage
 import com.github.pheymann.scala.bft.replica.ReplicaLifting.Assign
-import com.github.pheymann.scala.bft.replica.{ExecuteRequest, ReplicaAction, ReplicaContext}
+import com.github.pheymann.scala.bft.replica.{ExecuteRequest, ReplicaAction, ReplicaContext, ServiceAction}
 import com.github.pheymann.scala.bft.storage.StoreCommit
 import org.slf4j.LoggerFactory
 
@@ -12,7 +12,7 @@ class CommitRoundSpec extends ScalaBftSpec {
 
   implicit val specLog = LoggerFactory.getLogger(classOf[CommitRoundSpec])
 
-  def specProcessor(implicit context: ReplicaContext) = new (ReplicaAction ~> Id) {
+  def specProcessor(implicit context: ReplicaContext) = new (ServiceAction ~> Id) {
     def apply[A](action: ReplicaAction[A]): Id[A] = action match {
       case ValidateCommit(message, state) => MessageValidation.validateCommit(message, state)
 

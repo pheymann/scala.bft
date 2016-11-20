@@ -6,12 +6,14 @@ import com.github.pheymann.scala.bft.util.ScalaBftLogger
 
 object MessageValidation {
 
-  private[consensus] def validateMessage(message: ConsensusMessage, state: ConsensusState)
+  private[consensus] def validateMessage(message: ConsensusMessage)
                                         (implicit context: ReplicaContext): Boolean = {
-    message.receiverId  == state.replicaId &&
+    import context.config
+
+    message.receiverId  == context.config.id &&
     message.view        == context.view &&
-    message.sequenceNumber >= state.lowWatermark &&
-    message.sequenceNumber <= state.highWatermark
+    message.sequenceNumber >= config.lowWatermark &&
+    message.sequenceNumber <= config.highWatermark
   }
 
   def validatePrePrepare(
@@ -40,7 +42,7 @@ object MessageValidation {
                      (implicit context: ReplicaContext): ConsensusState = {
     import state.log
 
-    if (validateMessage(message, state)) {
+    if (validateMessage(message)) {
       state.receivedPrepares += 1
 
       if (state.receivedPrepares == context.config.expectedPrepares) {
@@ -58,7 +60,7 @@ object MessageValidation {
                     (implicit context: ReplicaContext): ConsensusState = {
     import state.log
 
-    if (validateMessage(message, state)) {
+    if (validateMessage(message)) {
       state.receivedCommits += 1
 
       if (state.receivedCommits == context.config.expectedCommits) {

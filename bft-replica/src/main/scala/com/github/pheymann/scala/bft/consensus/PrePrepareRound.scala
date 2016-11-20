@@ -2,19 +2,20 @@ package com.github.pheymann.scala.bft.consensus
 
 import cats.free.Free
 import com.github.pheymann.scala.bft.messaging.{ClientRequest, PrePrepareMessage, RequestDelivery}
-import com.github.pheymann.scala.bft.replica.ReplicaAction
-import com.github.pheymann.scala.bft.storage.StorePrePrepare
+import com.github.pheymann.scala.bft.storage.StorageAction._
+import ValidationAction._
+import com.github.pheymann.scala.bft.messaging.BroadcastAction._
+import com.github.pheymann.scala.bft.replica.ServiceAction
+import ServiceAction._
 
 object PrePrepareRound {
 
-  import com.github.pheymann.scala.bft.replica.ReplicaLifting._
-
-  def processLeaderPrePrepare(request: ClientRequest, state: ConsensusState): Free[ReplicaAction, ConsensusState] = {
+  def processLeaderPrePrepare(request: ClientRequest, state: ConsensusState): Free[ServiceAction, ConsensusState] = {
     for {
-      _ <- process(SendPrePrepareMessage)
-      _ <- process(SendClientRequest(request))
-      _ <- process(StorePrePrepare(request, state))
-      _ <- process(SendPrepareMessage)
+      _ <- broadcastPrePrepare(state)
+      _ <- broadcastRequest(request, state)
+      _ <- store(request, state)
+      _ <- broadcastPrepare(state)
     } yield {
       state.isPrePrepared = true
       state
@@ -25,17 +26,17 @@ object PrePrepareRound {
                                  message:   PrePrepareMessage,
                                  delivery:  RequestDelivery,
                                  state:     ConsensusState
-                               ): Free[ReplicaAction, ConsensusState] = {
+                               ): Free[ServiceAction, ConsensusState] = {
     for {
-      validatedState  <- process(ValidatePrePrepare(message, delivery, state))
+      validatedState  <- validate(message, delivery, state)
       _               <- {
         if (validatedState.isPrePrepared)
           for {
-            _ <- process(StorePrePrepare(delivery.request, state))
-            _ <- process(SendPrepareMessage)
-          } yield validatedState
+            _ <- store(delivery.request, state)
+            _ <- broadcastPrepare(state)
+          } yield ()
         else
-          assign(validatedState)
+          empty
       }
     } yield validatedState
   }

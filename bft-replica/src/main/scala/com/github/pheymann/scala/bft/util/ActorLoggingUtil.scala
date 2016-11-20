@@ -8,6 +8,10 @@ trait ActorLoggingUtil extends ActorLogging { this: Actor =>
     log.error(cause, msg)
   }
 
+  def logError(msg: => String): Unit = {
+    log.error(msg)
+  }
+
   def logWarn(msg: => String): Unit = {
     if (log.isWarningEnabled)
       log.warning(msg)

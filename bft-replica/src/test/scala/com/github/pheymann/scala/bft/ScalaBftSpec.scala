@@ -24,7 +24,7 @@ trait ScalaBftSpec extends Specification {
                   senderRef:   ActorRef = null,
                   receiverRef: ActorRef = null
                 ): ReplicaContext = {
-    ReplicaContext(isLeader, view, receiverRef, senderRef, 0L)(newConfig(0, expectedFaults))
+    ReplicaContext(isLeader, view, 0L)(newConfig(0, expectedFaults))
   }
 
   def newConfig(

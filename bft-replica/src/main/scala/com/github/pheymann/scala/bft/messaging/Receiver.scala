@@ -1,27 +1,40 @@
 package com.github.pheymann.scala.bft.messaging
 
 import com.github.pheymann.scala.bft.SessionKey
+import com.github.pheymann.scala.bft.messaging.ReceiverConnection.ReceiverConnectionState
 import com.github.pheymann.scala.bft.messaging.RequestStream.RequestStreamState
-import com.github.pheymann.scala.bft.replica.ReplicaConfig
+import com.github.pheymann.scala.bft.replica.{ReplicaConfig, ReplicaContext}
 import com.github.pheymann.scala.bft.util.AuthenticationVerification
 import org.slf4j.LoggerFactory
 
-object ReceiverConnectionHandler {
+object Receiver {
 
   import com.github.pheymann.scala.bft.util.ScalaBftLogger._
 
-  private implicit val log = LoggerFactory.getLogger("receiver.connection.handler")
+  case object NoMessage
 
-  final case class ReceiverConnectionState(senderId: Int, sessionKey: SessionKey) {
+  final class ReceiverContext {
 
-    private[ReceiverConnectionHandler] var streamStateOpt  = Option.empty[RequestStreamState]
-
-    private[ReceiverConnectionHandler] val messageBuffer   = collection.mutable.ListBuffer[ConsensusMessage]()
+    private[messaging] val queue       = collection.mutable.Queue[Any]()
+    private[messaging] val connections = collection.mutable.Map[Int, ReceiverConnectionState]()
 
   }
 
-  def handleConsensus(signedMessage: SignedConsensusMessage, state: ReceiverConnectionState)
-                     (implicit config: ReplicaConfig): Option[ConsensusMessage] = {
+  private implicit val log = LoggerFactory.getLogger("receiver.connections")
+
+  def addConsensusMessage(message: SignedConsensusMessage, receiver: ReceiverContext)
+                         (implicit context: ReplicaContext): Unit = {
+    import context.config
+    import receiver._
+
+    connections.get(message.message.senderId) match {
+      case Some(state)  => handleConsensus(message, state).foreach(msg => queue.enqueue(msg))
+      case None         => logWarn(s"unknown.connection: ${message.message.senderId}")
+    }
+  }
+
+  private def handleConsensus(signedMessage: SignedConsensusMessage, state: ReceiverConnectionState)
+                             (implicit config: ReplicaConfig): Option[ConsensusMessage] = {
     if (verify(signedMessage, state.sessionKey))
       state.streamStateOpt.fold[Option[ConsensusMessage]] {
         Some(signedMessage.message)
@@ -35,8 +48,19 @@ object ReceiverConnectionHandler {
     }
   }
 
-  def handleStreams(chunk: ChunkMessage, state: ReceiverConnectionState)
-                   (implicit config: ReplicaConfig): Option[Seq[Any]] = chunk match {
+  def addChunkMessage(chunk: ChunkMessage, receiver: ReceiverContext)
+                     (implicit context: ReplicaContext): Unit = {
+    import context.config
+    import receiver._
+
+    connections.get(chunk.senderId) match {
+      case Some(state)  => handleStreams(chunk, state).foreach(_.foreach(msg => queue.enqueue(msg)))
+      case None         => logWarn(s"unknown.connection: ${chunk.senderId}")
+    }
+  }
+
+  private def handleStreams(chunk: ChunkMessage, state: ReceiverConnectionState)
+                           (implicit config: ReplicaConfig): Option[Seq[Any]] = chunk match {
     case start: StartChunk =>
       state.streamStateOpt.fold {
         state.streamStateOpt = Some(RequestStreamState(start.sequenceNumber))
@@ -87,6 +111,15 @@ object ReceiverConnectionHandler {
       }
 
       None
+  }
+
+  def retrieveMessage(receiver: ReceiverContext): Any = {
+    import receiver.queue
+
+    if (queue.nonEmpty)
+      queue.dequeue()
+    else
+      NoMessage
   }
 
   private def verify(message: SignedConsensusMessage, sessionKey: SessionKey)
