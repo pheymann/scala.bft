@@ -1,6 +1,6 @@
 package com.github.pheymann.scala.bft.consensus
 
-import com.github.pheymann.scala.bft.messaging.{ConsensusMessage, PrePrepareMessage, PrepareMessage, RequestDelivery}
+import com.github.pheymann.scala.bft.messaging._
 import com.github.pheymann.scala.bft.replica.ReplicaContext
 import com.github.pheymann.scala.bft.util.ScalaBftLogger
 
@@ -56,7 +56,7 @@ object MessageValidation {
     state
   }
 
-  def validateCommit(message: ConsensusMessage, state: ConsensusState)
+  def validateCommit(message: CommitMessage, state: ConsensusState)
                     (implicit context: ReplicaContext): ConsensusState = {
     import state.log
 

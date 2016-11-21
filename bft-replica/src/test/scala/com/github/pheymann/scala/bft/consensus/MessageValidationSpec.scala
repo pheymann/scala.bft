@@ -2,7 +2,6 @@ package com.github.pheymann.scala.bft.consensus
 
 import com.github.pheymann.scala.bft.ScalaBftSpec
 import com.github.pheymann.scala.bft.messaging.{CommitMessage, PrepareMessage}
-import com.github.pheymann.scala.bft.replica.ReplicaConfig
 import org.slf4j.LoggerFactory
 
 class MessageValidationSpec extends ScalaBftSpec {
@@ -14,22 +13,20 @@ class MessageValidationSpec extends ScalaBftSpec {
       |defined watermarks and the expected sender/receiver ids""".stripMargin in {
       implicit val context = newContext(false, 0, 1)
 
-      val state = ConsensusState(0, 0, 0, 0, 1)
-
       // valid messages
-      MessageValidation.validateMessage(CommitMessage(0, 0, 0, 0), state) should beTrue
-      MessageValidation.validateMessage(CommitMessage(0, 0, 0, 1), state) should beTrue
+      MessageValidation.validateMessage(CommitMessage(0, 0, 0, 0)) should beTrue
+      MessageValidation.validateMessage(CommitMessage(0, 0, 0, 1)) should beTrue
 
       // invalid messages
-      MessageValidation.validateMessage(CommitMessage(0, 0, 0, 3), state) should beFalse
-      MessageValidation.validateMessage(CommitMessage(0, 0, 1, 0), state) should beFalse
-      MessageValidation.validateMessage(CommitMessage(0, 1, 1, 0), state) should beFalse
+      MessageValidation.validateMessage(CommitMessage(0, 0, 0, 3)) should beFalse
+      MessageValidation.validateMessage(CommitMessage(0, 0, 1, 0)) should beFalse
+      MessageValidation.validateMessage(CommitMessage(0, 1, 1, 0)) should beFalse
     }
 
     "set the state to prepared := true if 2f messages are received" in {
       implicit val context = newContext(false, 0, 1)
 
-      val state = ConsensusState(0, 0, 0, 0, 1)
+      val state = ConsensusState(0, 0, 0L)
 
       def checkState(state: ConsensusState)(isConsensus: Boolean, receivedMessages: Int) = {
         state.isPrepared should beEqualTo(isConsensus)
@@ -47,7 +44,7 @@ class MessageValidationSpec extends ScalaBftSpec {
     "set the state to commited := true if 2f + 1 messages are received" in {
       implicit val context = newContext(false, 0, 1)
 
-      val state = ConsensusState(0, 0, 0, 0, 1)
+      val state = ConsensusState(0, 0, 0L)
 
       def checkState(state: ConsensusState)(isConsensus: Boolean, receivedMessages: Int) = {
         state.isCommited should beEqualTo(isConsensus)

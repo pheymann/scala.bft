@@ -6,7 +6,7 @@ import scala.collection.JavaConversions._
 
 object ReplicaDiscovery {
 
-  case object DiscoverReplicas extends ReplicaAction[Seq[ReplicaEndpoint]]
+  case object DiscoverReplicas extends ServiceAction[Seq[ReplicaEndpoint]]
 
   def fromConfig(configFile: String): Seq[ReplicaEndpoint] = {
     val config = ConfigFactory.load(configFile)
