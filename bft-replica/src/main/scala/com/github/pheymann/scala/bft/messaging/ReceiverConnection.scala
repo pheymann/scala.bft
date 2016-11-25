@@ -1,13 +1,10 @@
 package com.github.pheymann.scala.bft.messaging
 
 import cats.data.Xor
-import cats.free.Free
 import com.github.pheymann.scala.bft.SessionKey
 import com.github.pheymann.scala.bft.util.{ScalaBftLogger, SessionKeyGenerator}
-import MessagingAction._
 import com.github.pheymann.scala.bft.messaging.Receiver.ReceiverContext
 import com.github.pheymann.scala.bft.messaging.RequestStream.RequestStreamState
-import com.github.pheymann.scala.bft.replica.ServiceAction
 import org.slf4j.LoggerFactory
 
 object ReceiverConnection {
@@ -32,12 +29,12 @@ object ReceiverConnection {
   private implicit val log = LoggerFactory.getLogger("receiver.connection")
 
   def open(selfId: Int, senderId: Int, sessionKey: SessionKey)
-          (implicit context: ReceiverContext): Free[ServiceAction, Xor[ReceiverError, SessionKey]] = {
+          (implicit context: ReceiverContext): Xor[ReceiverError, SessionKey] = {
     import context._
 
     if (connections.contains(senderId)) {
       logWarn(s"exists: $senderId")
-      Free.pure(Xor.left[ReceiverError, SessionKey](ConnectionAlreadyOpenError))
+      Xor.left[ReceiverError, SessionKey](ConnectionAlreadyOpenError)
     }
     else {
       val sessionKey = SessionKeyGenerator.generateSessionKey(senderId, selfId)
@@ -46,25 +43,21 @@ object ReceiverConnection {
 
       logInfo(s"opened: $senderId")
 
-      for {
-        _ <- openSenderConnection(senderId, sessionKey)
-      } yield Xor.right[ReceiverError, SessionKey](sessionKey)
+      Xor.right[ReceiverError, SessionKey](sessionKey)
     }
   }
 
   def close(senderId: Int)
-           (implicit context: ReceiverContext): Free[ServiceAction, Xor[ReceiverError, Boolean]] = {
+           (implicit context: ReceiverContext): Xor[ReceiverError, Boolean] = {
     import context._
 
     if (connections.remove(senderId).isDefined) {
       logInfo(s"closed: $senderId")
-      for {
-        _ <- closeSenderConnection(senderId)
-      } yield Xor.right(true)
+      Xor.right(true)
     }
     else {
       logWarn(s"not.exists: $senderId")
-      Free.pure(Xor.left(ConnectionNotOpenError))
+      Xor.left(ConnectionNotOpenError)
     }
   }
 
