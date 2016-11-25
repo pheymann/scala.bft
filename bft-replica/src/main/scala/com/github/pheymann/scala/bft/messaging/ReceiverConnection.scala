@@ -28,27 +28,31 @@ object ReceiverConnection {
 
   private implicit val log = LoggerFactory.getLogger("receiver.connection")
 
-  def open(selfId: Int, senderId: Int, sessionKey: SessionKey)
-          (implicit context: ReceiverContext): Xor[ReceiverError, SessionKey] = {
+  def open(
+            selfId:   Int,
+            senderId: Int,
+            sessionKey: SessionKey,
+            context:    ReceiverContext
+          ): Xor[ReceiverError, ReceiverConnectionState] = {
     import context._
 
     if (connections.contains(senderId)) {
       logWarn(s"exists: $senderId")
-      Xor.left[ReceiverError, SessionKey](ConnectionAlreadyOpenError)
+      Xor.left(ConnectionAlreadyOpenError)
     }
     else {
-      val sessionKey = SessionKeyGenerator.generateSessionKey(senderId, selfId)
-
-      connections += senderId -> ReceiverConnectionState(senderId, sessionKey)
+      val sessionKey  = SessionKeyGenerator.generateSessionKey(senderId, selfId)
+      val state       = ReceiverConnectionState(senderId, sessionKey)
 
       logInfo(s"opened: $senderId")
 
-      Xor.right[ReceiverError, SessionKey](sessionKey)
+      connections += senderId -> state
+
+      Xor.right(ReceiverConnectionState(senderId, sessionKey))
     }
   }
 
-  def close(senderId: Int)
-           (implicit context: ReceiverContext): Xor[ReceiverError, Boolean] = {
+  def close(senderId: Int, context: ReceiverContext): Xor[ReceiverError, Boolean] = {
     import context._
 
     if (connections.remove(senderId).isDefined) {

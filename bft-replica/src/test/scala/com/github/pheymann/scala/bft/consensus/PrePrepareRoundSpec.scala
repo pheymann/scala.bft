@@ -3,7 +3,7 @@ package com.github.pheymann.scala.bft.consensus
 import cats._
 import com.github.pheymann.scala.bft.ScalaBftSpec
 import com.github.pheymann.scala.bft.consensus.ValidationAction.ValidatePrePrepare
-import com.github.pheymann.scala.bft.messaging.BroadcastAction.{BroadcastPrePrepare, BroadcastPrepare, BroadcastRequest}
+import com.github.pheymann.scala.bft.messaging.MessagingAction.{BroadcastPrePrepare, BroadcastPrepare, BroadcastRequest}
 import com.github.pheymann.scala.bft.messaging.{ClientRequest, PrePrepareMessage, RequestDelivery}
 import com.github.pheymann.scala.bft.replica.ServiceAction
 import com.github.pheymann.scala.bft.replica.ServiceAction.EmptyAction
@@ -19,9 +19,9 @@ class PrePrepareRoundSpec extends ScalaBftSpec {
       case ValidatePrePrepare(message, delivery, state) => MessageValidation.validatePrePrepare(message, delivery, state)
 
       case StorePrePrepare(_, _)  => ()
-      case BroadcastPrePrepare(_) => ()
-      case BroadcastRequest(_, _) => ()
-      case BroadcastPrepare(_)    => ()
+      case BroadcastPrePrepare    => ()
+      case BroadcastRequest(_)    => ()
+      case BroadcastPrepare       => ()
       case EmptyAction            => ()
     }
   }

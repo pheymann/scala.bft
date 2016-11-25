@@ -4,7 +4,7 @@ import cats.free.Free
 import com.github.pheymann.scala.bft.messaging.PrepareMessage
 import ValidationAction._
 import com.github.pheymann.scala.bft.storage.StorageAction._
-import com.github.pheymann.scala.bft.messaging.BroadcastAction._
+import com.github.pheymann.scala.bft.messaging.MessagingAction._
 import com.github.pheymann.scala.bft.replica.ServiceAction
 import ServiceAction._
 
@@ -17,7 +17,7 @@ object PrepareRound {
         if (validatedState.isPrepared)
           for {
             _ <- store(message)
-            _ <- broadcastCommit(state)
+            _ <- broadcastCommit()
           } yield ()
         else
           empty

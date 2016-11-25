@@ -15,7 +15,7 @@ object Receiver {
 
   final class ReceiverContext {
 
-    private[messaging] val queue       = collection.mutable.Queue[Any]()
+    private[messaging] val queue       = collection.mutable.Queue[ScalaBftMessage]()
     private[messaging] val connections = collection.mutable.Map[Int, ReceiverConnectionState]()
 
   }
@@ -60,7 +60,7 @@ object Receiver {
   }
 
   private def handleStreams(chunk: ChunkMessage, state: ReceiverConnectionState)
-                           (implicit config: ReplicaConfig): Option[Seq[Any]] = chunk match {
+                           (implicit config: ReplicaConfig): Option[Seq[ScalaBftMessage]] = chunk match {
     case start: StartChunk =>
       state.streamStateOpt.fold {
         state.streamStateOpt = Some(RequestStreamState(start.sequenceNumber))
@@ -73,10 +73,10 @@ object Receiver {
     case end: EndChunk =>
       state.streamStateOpt.fold {
         logWarn(s"${chunk.senderId}.unexpected.end.chunk: $end")
-        Option.empty[Seq[Any]]
+        Option.empty[Seq[ScalaBftMessage]]
       } { streamState =>
         if (verify(end, state)) {
-          def collectMessages(requestResult: Seq[Any] = Nil): Some[Seq[Any]] = {
+          def collectMessages(requestResult: Seq[ScalaBftMessage] = Nil): Some[Seq[ScalaBftMessage]] = {
             val messages = requestResult ++ state.messageBuffer
 
             state.streamStateOpt = None
@@ -84,7 +84,7 @@ object Receiver {
             Some(messages)
           }
 
-          RequestStream.generateRequest(state.streamStateOpt.get).fold[Option[Seq[Any]]](
+          RequestStream.generateRequest(state.streamStateOpt.get).fold[Option[Seq[ScalaBftMessage]]](
             { cause =>
               logError(cause, s"${chunk.senderId}.invalid.stream")
               collectMessages()

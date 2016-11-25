@@ -1,6 +1,6 @@
 package com.github.pheymann.scala.bft.messaging
 
-case class RequestDelivery(senderId: Int, receiverId: Int, view: Int, sequenceNumber: Long, request: ClientRequest)
+case class RequestDelivery(senderId: Int, receiverId: Int, view: Int, sequenceNumber: Long, request: ClientRequest) extends ScalaBftMessage
 
 object RequestDelivery {
 

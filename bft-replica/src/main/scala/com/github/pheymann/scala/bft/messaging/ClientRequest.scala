@@ -4,7 +4,7 @@ case class ClientRequest(
                           clientId:   Int,
                           timestamp:  Long,
                           body:       Array[Byte]
-                        ) {
+                        ) extends ScalaBftMessage {
 
   lazy val toLog = s"{$clientId,$timestamp}"
 

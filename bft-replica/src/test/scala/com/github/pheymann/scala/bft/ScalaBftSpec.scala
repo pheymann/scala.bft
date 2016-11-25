@@ -1,6 +1,6 @@
 package com.github.pheymann.scala.bft
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import com.github.pheymann.scala.bft.consensus.ConsensusState
 import com.github.pheymann.scala.bft.replica.{ReplicaConfig, ReplicaContext}
@@ -19,10 +19,7 @@ trait ScalaBftSpec extends Specification {
                   isLeader: Boolean,
                   view:     Int,
 
-                  expectedFaults: Int,
-
-                  senderRef:   ActorRef = null,
-                  receiverRef: ActorRef = null
+                  expectedFaults: Int
                 ): ReplicaContext = {
     ReplicaContext(isLeader, view, 0L)(newConfig(0, expectedFaults))
   }

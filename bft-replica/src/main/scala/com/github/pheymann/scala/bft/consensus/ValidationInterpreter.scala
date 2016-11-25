@@ -16,3 +16,11 @@ class ValidationInterpreter()
   }
 
 }
+
+object ValidationInterpreter {
+
+  def apply(implicit context: ReplicaContext): ValidationInterpreter = {
+    new ValidationInterpreter()
+  }
+
+}
