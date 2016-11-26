@@ -65,14 +65,14 @@ object Receiver {
       state.streamStateOpt.fold {
         state.streamStateOpt = Some(RequestStreamState(start.sequenceNumber))
       } { _ =>
-        logWarn(s"${chunk.senderId}.unexpected.start.chunk: $start")
+        logWarn(s"${chunk.senderId}.unexpected.start.chunk: ${start.toLog}")
       }
 
       None
 
     case end: EndChunk =>
       state.streamStateOpt.fold {
-        logWarn(s"${chunk.senderId}.unexpected.end.chunk: $end")
+        logWarn(s"${chunk.senderId}.unexpected.end.chunk: ${end.toLog}")
         Option.empty[Seq[ScalaBftMessage]]
       } { streamState =>
         if (verify(end, state)) {
@@ -94,20 +94,19 @@ object Receiver {
           )
         }
         else {
-          logWarn(s"${chunk.senderId}.invalid.end.chunk: $end")
+          logWarn(s"${chunk.senderId}.invalid.end.chunk: ${end.toLog}")
           None
         }
       }
 
-
     case chunk: SignedRequestChunk =>
       state.streamStateOpt.fold {
-        logWarn(s"${chunk.senderId}.unexpected.chunk: $chunk")
+        logWarn(s"${chunk.senderId}.unexpected.chunk: ${chunk.toLog}")
       } { streamState =>
         if (verify(chunk, state.sessionKey))
           RequestStream.collectChunks(chunk.chunk, streamState)
         else
-          logWarn(s"${chunk.senderId}.invalid.chunk: $chunk")
+          logWarn(s"${chunk.senderId}.invalid.chunk: ${chunk.toLog}")
       }
 
       None

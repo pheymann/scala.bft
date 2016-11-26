@@ -58,6 +58,62 @@ class ReceiverSpec extends ScalaBftSpec {
       receiver.connections.headOption.flatMap(_._2.messageBuffer.headOption) should beEqualTo(Some(message))
       receiver.queue.isEmpty should beTrue
     }
+
+    """add a ChunkMessages if a stream for the sender is active and the connection
+      |exists""".stripMargin in {
+      import AuthenticationGenerator._
+
+      val chunk       = Array[Byte](1, 2)
+      val signedChunk = SignedRequestChunk(1, 0, 0L, chunk, generateMAC(generateDigest(chunk), testSessionKey))
+      val receiver    = new ReceiverContext()
+
+      Receiver.addChunkMessage(StartChunk(1, 0, 0L), receiver)
+
+      receiver.connections.isEmpty should beTrue
+
+      ReceiverConnection.open(0, 1, testSessionKey, receiver)
+
+      Receiver.addChunkMessage(StartChunk(1, 0, 0L), receiver)
+
+      receiver.connections.head._2.streamStateOpt.isDefined should beTrue
+      receiver.connections.head._2.streamStateOpt.get.sequenceNumber should beEqualTo(0L)
+
+      Receiver.addChunkMessage(signedChunk, receiver)
+
+      receiver.connections.head._2.streamStateOpt.get.chunks.head should beEqualTo(chunk)
+    }
+
+    "complete a stream with a valid EndChunk and build a RequestDelivery" in {
+      import AuthenticationGenerator._
+
+      val request   = ClientRequest(0, 0L, Array[Byte](1, 2, 3))
+      val delivery  = RequestDelivery(1, 0, 0, 0L, request)
+      val receiver  = new ReceiverContext()
+
+      ReceiverConnection.open(0, 1, testSessionKey, receiver)
+
+      Receiver.addChunkMessage(StartChunk(1, 0, 0L), receiver)
+
+      RequestStream
+        .generateChunks(delivery, config.chunkSize)
+        .foreach { chunk =>
+          val mac = generateMAC(generateDigest(chunk), testSessionKey)
+
+          Receiver.addChunkMessage(
+            SignedRequestChunk(delivery.senderId, delivery.receiverId, context.sequenceNumber, chunk, mac),
+            receiver
+          )
+        }
+
+      Receiver.addChunkMessage(EndChunk(1, 0, 0L), receiver)
+
+      val expected = receiver.queue.head.asInstanceOf[RequestDelivery]
+
+      expected.senderId should beEqualTo(delivery.senderId)
+      expected.receiverId should beEqualTo(delivery.receiverId)
+      expected.sequenceNumber should beEqualTo(delivery.sequenceNumber)
+      expected.view should beEqualTo(delivery.view)
+    }
   }
 
 }

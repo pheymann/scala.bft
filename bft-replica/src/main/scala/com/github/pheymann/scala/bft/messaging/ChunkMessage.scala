@@ -8,6 +8,8 @@ sealed trait ChunkMessage extends ScalaBftMessage {
   def receiverId: Int
   def sequenceNumber: Long
 
+  lazy val toLog: String = s"{$senderId,$receiverId,$sequenceNumber}"
+
 }
 
 sealed trait SignedChunkMessage extends ChunkMessage {

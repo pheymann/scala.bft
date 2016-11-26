@@ -72,6 +72,7 @@ object Sender {
                       (implicit context: ReplicaContext): Unit = {
     import context.config
     import sender._
+    import AuthenticationGenerator._
 
     connections.foreach { case (receiverId, state) =>
       val delivery  = RequestDelivery(config.id, receiverId, context.view, context.sequenceNumber, request)
@@ -81,7 +82,7 @@ object Sender {
       RequestStream
         .generateChunks(delivery, config.chunkSize)
         .foreach { chunk =>
-          val mac = AuthenticationGenerator.generateMAC(chunk, state.sessionKey)
+          val mac = generateMAC(generateDigest(chunk), state.sessionKey)
 
           state.socket.send(SignedRequestChunk(config.id, delivery.receiverId, context.sequenceNumber, chunk, mac))
         }
