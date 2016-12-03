@@ -2,7 +2,6 @@ package com.github.pheymann.scala.bft.messaging
 
 import com.github.pheymann.scala.bft.ScalaBftSpec
 import com.github.pheymann.scala.bft.messaging.Sender.SenderContext
-import com.github.pheymann.scala.bft.messaging.SenderConnection.SenderSocket
 
 class SenderSpec extends ScalaBftSpec {
 
@@ -36,18 +35,12 @@ class SenderSpec extends ScalaBftSpec {
 
       val sentChunks = Seq.newBuilder[ChunkMessage]
 
-      val testSocket = new SenderSocket {
-        def send(msg: ScalaBftMessage): Unit = {
-          sentChunks += msg.asInstanceOf[ChunkMessage]
-        }
-      }
-
       val request   = ClientRequest(0, 0L, Array.empty)
       val delivery  = RequestDelivery(0, 1, 0, 0L, request)
 
       val sender    = SenderContext()
 
-      SenderConnection.open(1, testSessionKey, testSocket, sender)
+      SenderConnection.open(1, testSessionKey, sentChunks += _.asInstanceOf[ChunkMessage], sender)
 
       Sender.broadcastRequest(request, sender)
 
@@ -63,16 +56,10 @@ class SenderSpec extends ScalaBftSpec {
                             (broadcast: SenderContext => Unit) = {
     val sentMessages = Seq.newBuilder[ScalaBftMessage]
 
-    val testSocket = new SenderSocket {
-      def send(msg: ScalaBftMessage): Unit = {
-        sentMessages += msg.asInstanceOf[SignedConsensusMessage].message
-      }
-    }
-
     val sender = SenderContext()
 
-    SenderConnection.open(1, testSessionKey, testSocket, sender)
-    SenderConnection.open(2, testSessionKey, testSocket, sender)
+    SenderConnection.open(1, testSessionKey, sentMessages += _.asInstanceOf[SignedConsensusMessage].message, sender)
+    SenderConnection.open(2, testSessionKey, sentMessages += _.asInstanceOf[SignedConsensusMessage].message, sender)
 
     broadcast(sender)
 

@@ -7,20 +7,16 @@ import org.slf4j.LoggerFactory
 
 object SenderConnection {
 
-  trait SenderSocket {
+  type SendThroughSocket = ScalaBftMessage => Unit
 
-    def send(msg: ScalaBftMessage): Unit
-
-  }
-
-  final case class SenderConnectionState(sessionKey: SessionKey, socket: SenderSocket)
+  final case class SenderConnectionState(sessionKey: SessionKey, socket: SendThroughSocket)
 
   private implicit val log = LoggerFactory.getLogger("sender.connection")
 
   def open(
             senderId:     Int,
             sessionKey:   SessionKey,
-            socket:       SenderSocket,
+            socket:       SendThroughSocket,
             context:      SenderContext
           ): SenderContext = {
     import context._

@@ -2,13 +2,10 @@ package com.github.pheymann.scala.bft.messaging
 
 import com.github.pheymann.scala.bft.ScalaBftSpec
 import com.github.pheymann.scala.bft.messaging.Sender.SenderContext
-import com.github.pheymann.scala.bft.messaging.SenderConnection.SenderSocket
 
 class SenderConnectionSpec extends ScalaBftSpec {
 
-  val testSocket = new SenderSocket {
-    def send(msg: ScalaBftMessage): Unit = ()
-  }
+  val testSocket = (_: ScalaBftMessage) => ()
 
   "The SenderConnection" should {
     "open a connection if it doesn't exists" in {

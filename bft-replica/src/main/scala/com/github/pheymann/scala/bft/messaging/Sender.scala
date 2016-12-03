@@ -18,7 +18,7 @@ object Sender {
     import sender._
 
     connections.foreach { case (receiverId, state) =>
-      state.socket.send(messageGen(receiverId, state))
+      state.socket(messageGen(receiverId, state))
     }
   }
 
@@ -77,17 +77,17 @@ object Sender {
     connections.foreach { case (receiverId, state) =>
       val delivery = RequestDelivery(config.id, receiverId, context.view, context.sequenceNumber, request)
 
-      state.socket.send(StartChunk(config.id, delivery.receiverId, context.sequenceNumber))
+      state.socket(StartChunk(config.id, delivery.receiverId, context.sequenceNumber))
 
       RequestStream
         .generateChunks(delivery, config.chunkSize)
         .foreach { chunk =>
           val mac = generateMAC(generateDigest(chunk), state.sessionKey)
 
-          state.socket.send(SignedRequestChunk(config.id, delivery.receiverId, context.sequenceNumber, chunk, mac))
+          state.socket(SignedRequestChunk(config.id, delivery.receiverId, context.sequenceNumber, chunk, mac))
         }
 
-      state.socket.send(EndChunk(config.id, delivery.receiverId, context.sequenceNumber))
+      state.socket(EndChunk(config.id, delivery.receiverId, context.sequenceNumber))
     }
   }
 
