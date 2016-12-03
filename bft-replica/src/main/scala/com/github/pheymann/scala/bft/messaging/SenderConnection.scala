@@ -1,6 +1,7 @@
 package com.github.pheymann.scala.bft.messaging
 
 import com.github.pheymann.scala.bft.SessionKey
+import com.github.pheymann.scala.bft.messaging.Sender.SenderContext
 import com.github.pheymann.scala.bft.util.ScalaBftLogger._
 import org.slf4j.LoggerFactory
 
@@ -8,7 +9,7 @@ object SenderConnection {
 
   trait SenderSocket {
 
-    def send(msg: Any): Unit
+    def send(msg: ScalaBftMessage): Unit
 
   }
 
@@ -20,24 +21,28 @@ object SenderConnection {
             senderId:     Int,
             sessionKey:   SessionKey,
             socket:       SenderSocket,
-            connections:  collection.mutable.Map[Int, SenderConnectionState]
-          ): collection.mutable.Map[Int, SenderConnectionState] = {
+            context:      SenderContext
+          ): SenderContext = {
+    import context._
+
     if (connections.contains(senderId))
       logWarn(s"exists: $senderId")
     else
       connections += senderId -> SenderConnectionState(sessionKey, socket)
-    connections
+    context
   }
 
   def close(
-             senderId:    Int,
-             connections: collection.mutable.Map[Int, SenderConnectionState]
-           ): collection.mutable.Map[Int, SenderConnectionState] = {
+             senderId:  Int,
+             context:   SenderContext
+           ): SenderContext = {
+    import context._
+
     if (connections.remove(senderId).isDefined)
       logInfo(s"closed: $senderId")
     else
       logWarn(s"not.exists: $senderId")
-    connections
+    context
   }
 
 }

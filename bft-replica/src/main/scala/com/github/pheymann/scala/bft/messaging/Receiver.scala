@@ -11,7 +11,7 @@ object Receiver {
 
   import com.github.pheymann.scala.bft.util.ScalaBftLogger._
 
-  case object NoMessage
+  case object NoMessage extends ScalaBftMessage
 
   final class ReceiverContext {
 
@@ -112,7 +112,7 @@ object Receiver {
       None
   }
 
-  def retrieveMessage(receiver: ReceiverContext): Any = {
+  def retrieveMessage(receiver: ReceiverContext): ScalaBftMessage = {
     import receiver.queue
 
     if (queue.nonEmpty)

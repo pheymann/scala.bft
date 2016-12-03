@@ -7,9 +7,9 @@ import com.github.pheymann.scala.bft.SessionKey
 
 object Sender {
 
-  final class SenderContext {
+  final case class SenderContext() {
 
-    private[Sender] val connections = collection.mutable.Map[Int, SenderConnectionState]()
+    private[messaging] val connections = collection.mutable.Map[Int, SenderConnectionState]()
 
   }
 
@@ -75,7 +75,7 @@ object Sender {
     import AuthenticationGenerator._
 
     connections.foreach { case (receiverId, state) =>
-      val delivery  = RequestDelivery(config.id, receiverId, context.view, context.sequenceNumber, request)
+      val delivery = RequestDelivery(config.id, receiverId, context.view, context.sequenceNumber, request)
 
       state.socket.send(StartChunk(config.id, delivery.receiverId, context.sequenceNumber))
 

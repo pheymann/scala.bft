@@ -24,7 +24,7 @@ sealed trait ConsensusMessage extends SignableMessage with ScalaBftMessage {
 
 }
 
-final case class SignedConsensusMessage(message: ConsensusMessage, mac: Mac)
+final case class SignedConsensusMessage(message: ConsensusMessage, mac: Mac) extends ScalaBftMessage
 
 final case class PrePrepareMessage(
                                     senderId:   Int,

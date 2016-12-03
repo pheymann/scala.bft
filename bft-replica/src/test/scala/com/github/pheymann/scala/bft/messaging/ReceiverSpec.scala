@@ -1,8 +1,9 @@
 package com.github.pheymann.scala.bft.messaging
 
 import com.github.pheymann.scala.bft.ScalaBftSpec
-import com.github.pheymann.scala.bft.messaging.Receiver.ReceiverContext
+import com.github.pheymann.scala.bft.messaging.Receiver.{NoMessage, ReceiverContext}
 import com.github.pheymann.scala.bft.util.AuthenticationGenerator
+import com.github.pheymann.scala.bft.util.AuthenticationGenerator._
 
 class ReceiverSpec extends ScalaBftSpec {
 
@@ -84,28 +85,13 @@ class ReceiverSpec extends ScalaBftSpec {
     }
 
     "complete a stream with a valid EndChunk and build a RequestDelivery" in {
-      import AuthenticationGenerator._
-
       val request   = ClientRequest(0, 0L, Array[Byte](1, 2, 3))
       val delivery  = RequestDelivery(1, 0, 0, 0L, request)
       val receiver  = new ReceiverContext()
 
       ReceiverConnection.open(0, 1, testSessionKey, receiver)
 
-      Receiver.addChunkMessage(StartChunk(1, 0, 0L), receiver)
-
-      RequestStream
-        .generateChunks(delivery, config.chunkSize)
-        .foreach { chunk =>
-          val mac = generateMAC(generateDigest(chunk), testSessionKey)
-
-          Receiver.addChunkMessage(
-            SignedRequestChunk(delivery.senderId, delivery.receiverId, context.sequenceNumber, chunk, mac),
-            receiver
-          )
-        }
-
-      Receiver.addChunkMessage(EndChunk(1, 0, 0L), receiver)
+      sendRequestDelivery(delivery, receiver)
 
       val expected = receiver.queue.head.asInstanceOf[RequestDelivery]
 
@@ -114,6 +100,61 @@ class ReceiverSpec extends ScalaBftSpec {
       expected.sequenceNumber should beEqualTo(delivery.sequenceNumber)
       expected.view should beEqualTo(delivery.view)
     }
+
+    "buffer messages received during an active stream" in {
+      val request   = ClientRequest(0, 0L, Array[Byte](1, 2, 3))
+      val delivery  = RequestDelivery(1, 0, 0, 0L, request)
+      val receiver  = new ReceiverContext()
+
+      ReceiverConnection.open(0, 1, testSessionKey, receiver)
+
+      sendRequestDelivery(delivery, receiver, true)
+
+      val message       = CommitMessage(1, 0, 0, 0L)
+      val signedMessage = SignedConsensusMessage(message, AuthenticationGenerator.generateMAC(message, testSessionKey))
+
+      Receiver.addConsensusMessage(signedMessage, receiver)
+
+      receiver.connections.head._2.messageBuffer.length should beEqualTo(1)
+
+      Receiver.addChunkMessage(EndChunk(1, 0, 0L), receiver)
+
+      receiver.queue.length should beEqualTo(2)
+      receiver.connections.head._2.messageBuffer.isEmpty should beTrue
+    }
+
+    "return a message if at least one is buffered" in {
+      val message       = CommitMessage(1, 0, 0, 0L)
+      val signedMessage = SignedConsensusMessage(message, AuthenticationGenerator.generateMAC(message, testSessionKey))
+      val receiver      = new ReceiverContext()
+
+      ReceiverConnection.open(0, 1, testSessionKey, receiver)
+
+      Receiver.addConsensusMessage(signedMessage, receiver)
+      Receiver.addConsensusMessage(signedMessage, receiver)
+
+      Receiver.retrieveMessage(receiver) should beEqualTo(message)
+      Receiver.retrieveMessage(receiver) should beEqualTo(message)
+      Receiver.retrieveMessage(receiver) should beEqualTo(NoMessage)
+    }
+  }
+
+  private def sendRequestDelivery(delivery: RequestDelivery, receiver: ReceiverContext, staysActive: Boolean = false): Unit = {
+    Receiver.addChunkMessage(StartChunk(1, 0, 0L), receiver)
+
+    RequestStream
+      .generateChunks(delivery, config.chunkSize)
+      .foreach { chunk =>
+        val mac = generateMAC(generateDigest(chunk), testSessionKey)
+
+        Receiver.addChunkMessage(
+          SignedRequestChunk(delivery.senderId, delivery.receiverId, context.sequenceNumber, chunk, mac),
+          receiver
+        )
+      }
+
+    if (!staysActive)
+      Receiver.addChunkMessage(EndChunk(1, 0, 0L), receiver)
   }
 
 }
