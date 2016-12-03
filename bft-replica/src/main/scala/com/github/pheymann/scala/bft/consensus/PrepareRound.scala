@@ -2,27 +2,31 @@ package com.github.pheymann.scala.bft.consensus
 
 import cats.free.Free
 import com.github.pheymann.scala.bft.messaging.PrepareMessage
-import ValidationAction._
 import com.github.pheymann.scala.bft.storage.StorageAction._
 import com.github.pheymann.scala.bft.messaging.MessagingAction._
-import com.github.pheymann.scala.bft.replica.ServiceAction
+import com.github.pheymann.scala.bft.replica.{ReplicaContext, ServiceAction}
 import ServiceAction._
+import MessageValidation._
 
 object PrepareRound {
 
-  def processPrepare(message: PrepareMessage, state: ConsensusState): Free[ServiceAction, ConsensusState] = {
+  def processPrepare(message: PrepareMessage, state: ConsensusState)
+                    (implicit context: ReplicaContext): Free[ServiceAction, ConsensusState] = {
     for {
-      validatedState  <- validate(message, state)
-      _               <- {
-        if (validatedState.isPrepared)
-          for {
-            _ <- store(message)
-            _ <- broadcastCommit()
-          } yield ()
+      validation <- validatePrepare(message, state)
+      _ <- {
+        if (validation._1) {
+          store(message).map { _ =>
+            if (validation._2.isPrepared)
+              broadcastCommit()
+            else
+              nothing
+          }
+        }
         else
-          empty
+          nothing
       }
-    } yield validatedState
+    } yield validation._2
   }
 
 }

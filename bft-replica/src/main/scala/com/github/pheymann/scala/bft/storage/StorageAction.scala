@@ -11,12 +11,28 @@ object StorageAction {
 
   case object GetLastView extends StorageAction[Int]
 
-  def getLastView: Free[StorageAction, Int] = Free.liftF(GetLastView)
+  def getLastView: Free[ServiceAction, Int] = GetLastView.liftM
 
   case object GetLastSequenceNumber extends StorageAction[Long]
 
-  def getLastSequenceNumber: Free[ServiceAction, Long] = {
-    Free.liftF(GetLastSequenceNumber)
+  def getLastSequenceNumber: Free[ServiceAction, Long] = GetLastSequenceNumber.liftM
+
+  final case class IsPrePrepareStored(message: PrePrepareMessage) extends StorageAction[Boolean]
+
+  def isPrePrepareStored(message: PrePrepareMessage): Free[ServiceAction, Boolean] = {
+    IsPrePrepareStored(message).liftM
+  }
+
+  final case class IsPrepareStored(message: PrepareMessage) extends StorageAction[Boolean]
+
+  def isPrepareStored(message: PrepareMessage): Free[ServiceAction, Boolean] = {
+    IsPrepareStored(message).liftM
+  }
+
+  final case class IsCommitStored(message: CommitMessage) extends StorageAction[Boolean]
+
+  def isCommitStored(message: CommitMessage): Free[ServiceAction, Boolean] = {
+    IsCommitStored(message).liftM
   }
 
   final case class StorePrePrepare(
@@ -25,19 +41,15 @@ object StorageAction {
                                   )  extends StorageAction[Unit]
 
   def store(request: ClientRequest, state: ConsensusState): Free[ServiceAction, Unit] = {
-    Free.liftF(StorePrePrepare(request, state))
+    StorePrePrepare(request, state).liftM
   }
 
   final case class StorePrepare(message: PrepareMessage) extends StorageAction[Unit]
 
-  def store(message: PrepareMessage): Free[ServiceAction, Unit] = {
-    Free.liftF(StorePrepare(message))
-  }
+  def store(message: PrepareMessage): Free[ServiceAction, Unit] = StorePrepare(message).liftM
 
   final case class StoreCommit(message: CommitMessage) extends StorageAction[Unit]
 
-  def store(message: CommitMessage): Free[ServiceAction, Unit] = {
-    Free.liftF(StoreCommit(message))
-  }
+  def store(message: CommitMessage): Free[ServiceAction, Unit] = StoreCommit(message).liftM
 
 }
