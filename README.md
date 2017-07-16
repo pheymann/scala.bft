@@ -43,7 +43,7 @@ Therefore, the replicated state machine service has to become *fault tolerant* a
 A BFT system consists of a single leader `L` and a number of follower `F` machines with `|F| = n - 1`. When a client `C` requests  an operation `o_i`, the request `r_i` is sent to the leader which starts the three consensus rounds shown in the following figure.
 
 <p align="center">
-  <img src="https://pheymann.github.io/scala.bft/img/pbft.svg" width=700 height=700 />
+  <img src="https://pheymann.github.io/scala.bft/img/pbft.svg"/>
 <p/>
 
  1. **Pre-Prepare**: the request `r_i` is delivered from `L` to all `F` (n)
@@ -67,7 +67,7 @@ The basic assumption within BFT is that all requests are depending on each other
 The new parallelized BFT protocol consists of leaders `L`, followers `F` and partitions `P` with `|L| = |F| = |P|`. Every machine running it executes as many BFT instances as partitions exists and for the current state of the protocol every machine holds exactly one leader. Furthermore there will be just one leader per BFT instance. A future improvement should make it possible to add create machines with multiple or no leader at all.
 
 <p align="center">
-  <img src="https://pheymann.github.io/scala.bft/img/leader.svg" width=700 height=700 />
+  <img src="https://pheymann.github.io/scala.bft/img/leader.svg"/>
 <p/>
 
 #### Request Types
@@ -77,14 +77,14 @@ With the new architecture the requests have to be split up into two types.
 A simple request only accesses state objects from the same partition, thus avoiding synchronisation between partitions and BFT instances.
 
 <p align="center">
-  <img src="https://pheymann.github.io/scala.bft/img/simple_request.svg" width=500 height=500 />
+  <img src="https://pheymann.github.io/scala.bft/img/simple_request.svg"/>
 <p/>
 
 ##### Cross-Border Request
 A cross-border request accesses state objects across multiple partitions, thus forcing to synchronize the related partitions. Synchronisation means a request `r_i` has to be in `head position` in all partitions queues `Q` of the partitions which shall be accessed. Here a queue `Q_j` is just a buffer for incoming requests.
 
 <p align="center">
-  <img src="https://pheymann.github.io/scala.bft/img/cross_border_request.svg" width=400 height=400 />
+  <img src="https://pheymann.github.io/scala.bft/img/cross_border_request.svg"/>
 <p/>
 
  - **Cross Border Execution** request: <br>
@@ -98,7 +98,7 @@ Only when `r_i` is ready it can be used for consensus and execution. This way th
 Besides the introduced synchronization and therefore the loss of parallelism the cross-border request have another disadvantage; they can lead to deadlocks. It is possible that multiple cb requests access the replicas at the same time leading to the following situation:
 
 <p align="center">
-  <img src="https://pheymann.github.io/scala.bft/img/nondeterminism.svg" width=400 height=400 />
+  <img src="https://pheymann.github.io/scala.bft/img/nondeterminism.svg"/>
 <p/>
 
 In this scenario `r_0` waits for `r_1` to be executed and to release its CBS requests, and vis versa. Deadlock resolution strategies will be discussed later.
