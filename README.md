@@ -1,7 +1,9 @@
 [![Build Status](https://travis-ci.org/pheymann/scala.bft.svg?branch=develop)](https://travis-ci.org/pheymann/scala.bft)
 
-# Scala.bft (This is a WIP prototype which isn't even close to complete :))
-This projects aims to provide scala based implementation of the **B**yzantine **F**ault **T**olerance protocole and furthermore to introduce a **mutli-leader** approach to obtain parallelism and an improved performance.
+# Scala.bft (I played a bit around, soooo crapy code ahead :)
+**Note**: I am working on a federated BFT approach which also utilises the idea of parallel pbft which I am introducing here. Maybe I find the time to write it down in a nice way and publish it in the near future. 
+
+This projects aims to provide a prototype of the **B**yzantine **F**ault **T**olerance protocole and furthermore to introduce a **mutli-leader** approach to obtain parallelism and an improved performance.
 
 ## BFT And Its Parallelization
 This page gives a rough overview about Byzantine Fault Tolerance (BFT) and how the parallelization is done.
